@@ -3,7 +3,6 @@ import {
   reaction,
   computed,
   observable,
-  when,
 } from 'mobx';
 import localStorage from 'mobx-localstorage';
 import { remove } from 'lodash';
@@ -38,7 +37,9 @@ export default class ServicesStore extends Store {
   @observable filterNeedle = null;
 
   @observable isRehidratingServices = false;
+
   @observable allServices = [];
+
   @observable hasServicesLocal = false;
 
   constructor(...args) {
@@ -99,14 +100,14 @@ export default class ServicesStore extends Store {
       this.hasServicesLocal = false;
       this.isRehidratingServices = true;
       const services = localStorage.getItem('services').allServices;
-      rehitrdateServices(services, this.api).then(rehidrated => {
+      rehitrdateServices(services, this.api).then((rehidrated) => {
         console.log('[ServicesStore::setup] Rehidrated services');
         this.allServices = rehidrated.filter(service => service !== null);
         this.hasServicesLocal = true;
         this.isRehidratingServices = false;
       });
 
-      // Update 
+      // Update
       setTimeout(() => {
         this.allServices = this.allServicesRequest.execute().result;
         this.hasServicesLocal = true;
@@ -133,20 +134,20 @@ export default class ServicesStore extends Store {
       () => {
         // Update local copy of data if needed
         if (
-          (!this.hasServicesLocal || 
-          JSON.parse(JSON.stringify(this.allServices)) !== localStorage.getItem('services')) &&
-          this.allServices !== null &&
-          this.allServices.length > 0) {
+          (!this.hasServicesLocal
+          || JSON.parse(JSON.stringify(this.allServices)) !== localStorage.getItem('services'))
+          && this.allServices !== null
+          && this.allServices.length > 0) {
           console.log('[ServicesStore] Need to update localStorage');
           localStorage.setItem('services', {
             allServices: this.allServices,
           });
           this.hasServicesLocal = true;
         }
-      }
-    )
-    
-    reaction(  
+      },
+    );
+
+    reaction(
       () => this.stores.settings.app.darkMode,
       () => this._shareSettingsWithServiceProcess(),
     );
@@ -158,14 +159,14 @@ export default class ServicesStore extends Store {
       const services = hasServices ? this.allServices : this.allServicesRequest.execute().result;
 
       // TODO: Remove when done debugging
-      console.log('[ServicesStore::all]', hasServices ? 'from local': 'from server', services ? services.length : 'no Service', services);
-      
+      console.log('[ServicesStore::all]', hasServices ? 'from local' : 'from server', services ? services.length : 'no Service', services);
+
       if (services) {
         return observable(services.slice().slice().sort((a, b) => a.order - b.order).map((s, index) => {
           s.index = index;
           return s;
         }));
-      } 
+      }
     }
     return [];
   }
