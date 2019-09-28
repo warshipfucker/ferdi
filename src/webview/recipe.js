@@ -1,8 +1,15 @@
 import { ipcRenderer } from 'electron';
 import path from 'path';
 import { autorun, computed, observable } from 'mobx';
+import fs from 'fs-extra';
 import { loadModule } from 'cld3-asm';
 import { debounce } from 'lodash';
+import {
+  enable as enableDarkMode,
+  disable as disableDarkMode,
+} from 'darkreader';
+
+import ignoreList from './darkmode/ignore';
 
 import RecipeWebview from './lib/RecipeWebview';
 
@@ -109,12 +116,27 @@ class RecipeController {
       }
     }
 
-    if (this.settings.service.isDarkModeEnabled) {
+    if (this.settings.service.isDarkModeEnabled || this.settings.app.darkMode) {
       debug('Enable dark mode');
-      injectDarkModeStyle(this.settings.service.recipe.path);
-    } else if (isDarkModeStyleInjected()) {
+
+      // Check if recipe has a darkmode.css
+      const darkModeStyle = path.join(this.settings.service.recipe.path, 'darkmode.css');
+      const darkModeExists = fs.pathExistsSync(darkModeStyle);
+
+      if (darkModeExists) {
+        injectDarkModeStyle(this.settings.service.recipe.path);
+      } else if (!ignoreList.includes(window.location.host)) {
+        // Use darkreader instead
+        enableDarkMode();
+      }
+    } else {
       debug('Remove dark mode');
-      removeDarkModeStyle();
+
+      if (isDarkModeStyleInjected()) {
+        removeDarkModeStyle();
+      } else {
+        disableDarkMode();
+      }
     }
   }
 
@@ -174,6 +196,32 @@ new RecipeController();
 const originalWindowOpen = window.open;
 
 window.open = (url, frameName, features) => {
+  if (!url && !frameName && !features) {
+    // The service hasn't yet supplied a URL (as used in Skype).
+    // Return a new dummy window object and wait for the service to change the properties
+    const newWindow = {
+      location: {
+        href: '',
+      },
+    };
+
+    const checkInterval = setInterval(() => {
+      // Has the service changed the URL yet?
+      if (newWindow.location.href !== '') {
+        // Open the new URL
+        window.open(newWindow.location.href);
+        clearInterval(checkInterval);
+      }
+    }, 0);
+
+    setTimeout(() => {
+      // Stop checking for location changes after 1 second
+      clearInterval(checkInterval);
+    }, 1000);
+
+    return newWindow;
+  }
+
   // We need to differentiate if the link should be opened in a popup or in the systems default browser
   if (!frameName && !features) {
     return ipcRenderer.sendToHost('new-window', url);

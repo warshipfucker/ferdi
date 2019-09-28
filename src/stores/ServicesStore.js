@@ -145,6 +145,11 @@ export default class ServicesStore extends Store {
         }
       }
     )
+    
+    reaction(  
+      () => this.stores.settings.app.darkMode,
+      () => this._shareSettingsWithServiceProcess(),
+    );
   }
 
   @computed get all() {

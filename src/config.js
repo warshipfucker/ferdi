@@ -62,6 +62,7 @@ export const DEFAULT_APP_SETTINGS = {
   scheduledDNDEnabled: false,
   scheduledDNDStart: '17:00',
   scheduledDNDEnd: '09:00',
+  hibernate: false,
 };
 
 export const DEFAULT_FEATURES_CONFIG = {
@@ -76,6 +77,7 @@ export const DEFAULT_FEATURES_CONFIG = {
   isAnnouncementsEnabled: true,
   isWorkspaceIncludedInCurrentPlan: true,
   isWorkspaceEnabled: false,
+  isCommunityRecipesIncludedInCurrentPlan: true,
 };
 
 export const DEFAULT_WINDOW_OPTIONS = {
@@ -98,6 +100,7 @@ export const SETTINGS_PATH = path.join(app.getPath('userData'), 'config');
 
 // Replacing app.asar is not beautiful but unforunately necessary
 export const DICTIONARY_PATH = asarPath(path.join(__dirname, 'dictionaries'));
+export const RECIPES_PATH = asarPath(path.join(__dirname, 'recipes'));
 
 export const ALLOWED_PROTOCOLS = [
   'https:',

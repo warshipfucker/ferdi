@@ -1,4 +1,5 @@
 import { remote, shell } from 'electron';
+import fs from 'fs-extra';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { autorun } from 'mobx';
@@ -12,8 +13,9 @@ import UserStore from '../../stores/UserStore';
 
 import RecipesDashboard from '../../components/settings/recipes/RecipesDashboard';
 import ErrorBoundary from '../../components/util/ErrorBoundary';
-import { FRANZ_DEV_DOCS } from '../../config';
+import { FRANZ_DEV_DOCS, RECIPES_PATH } from '../../config';
 import { communityRecipesStore } from '../../features/communityRecipes';
+import RecipePreview from '../../models/RecipePreview';
 
 const { app } = remote;
 
@@ -36,6 +38,14 @@ export default @inject('stores', 'actions') @observer class RecipesScreen extend
   };
 
   autorunDisposer = null;
+
+  customRecipes = [];
+
+  constructor(props) {
+    super(props);
+
+    this.customRecipes = fs.readJsonSync(path.join(RECIPES_PATH, 'all.json'));
+  }
 
   componentDidMount() {
     this.autorunDisposer = autorun(() => {
@@ -67,6 +77,27 @@ export default @inject('stores', 'actions') @observer class RecipesScreen extend
     }
   }
 
+
+  prepareRecipes(recipes) {
+    return recipes
+    // Filter out duplicate recipes
+      .filter((recipe, index, self) => {
+        const ids = self.map(rec => rec.id);
+        return ids.indexOf(recipe.id) === index;
+
+        // Sort alphabetically
+      }).sort((a, b) => {
+        if (a.id < b.id) { return -1; }
+        if (a.id > b.id) { return 1; }
+        return 0;
+      });
+  }
+
+  // Create an array of RecipePreviews from an array of recipe objects
+  createPreviews(recipes) {
+    return recipes.map(recipe => new RecipePreview(recipe));
+  }
+
   resetSearch() {
     this.setState({ needle: null });
   }
@@ -88,14 +119,25 @@ export default @inject('stores', 'actions') @observer class RecipesScreen extend
     let recipeFilter;
 
     if (filter === 'all') {
-      recipeFilter = recipePreviews.all;
+      recipeFilter = this.prepareRecipes([
+        ...recipePreviews.all,
+        ...this.createPreviews(this.customRecipes),
+      ]);
     } else if (filter === 'dev') {
       recipeFilter = communityRecipesStore.communityRecipes;
     } else {
       recipeFilter = recipePreviews.featured;
     }
 
-    const allRecipes = this.state.needle ? recipePreviews.searchResults : recipeFilter;
+    const allRecipes = this.state.needle ? this.prepareRecipes([
+      // All search recipes from server
+      ...recipePreviews.searchResults,
+      // All search recipes from local recipes
+      ...this.createPreviews(
+        this.customRecipes
+          .filter(service => service.name.toLowerCase().includes(this.state.needle.toLowerCase())),
+      ),
+    ]) : recipeFilter;
 
     const isLoading = recipePreviews.featuredRecipePreviewsRequest.isExecuting
       || recipePreviews.allRecipePreviewsRequest.isExecuting
