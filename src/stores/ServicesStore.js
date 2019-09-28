@@ -3,7 +3,9 @@ import {
   reaction,
   computed,
   observable,
+  when,
 } from 'mobx';
+import localStorage from 'mobx-localstorage';
 import { remove } from 'lodash';
 import ms from 'ms';
 
@@ -12,6 +14,7 @@ import Request from './lib/Request';
 import CachedRequest from './lib/CachedRequest';
 import { matchRoute } from '../helpers/routing-helpers';
 import { isInTimeframe } from '../helpers/schedule-helpers';
+import { rehitrdateServices } from '../helpers/storage-helpers';
 import { workspaceStore } from '../features/workspaces';
 import { serviceLimitStore } from '../features/serviceLimit';
 import { RESTRICTION_TYPES } from '../models/Service';
@@ -33,6 +36,10 @@ export default class ServicesStore extends Store {
   @observable clearCacheRequest = new Request(this.api.services, 'clearCache');
 
   @observable filterNeedle = null;
+
+  @observable isRehidratingServices = false;
+  @observable allServices = [];
+  @observable hasServicesLocal = false;
 
   constructor(...args) {
     super(...args);
@@ -86,6 +93,30 @@ export default class ServicesStore extends Store {
   }
 
   setup() {
+    // Check if we have a local copy of our service
+    if (localStorage.getItem('services') && localStorage.getItem('services').allServices !== null) {
+      // Rehidrate services from storage
+      this.hasServicesLocal = false;
+      this.isRehidratingServices = true;
+      const services = localStorage.getItem('services').allServices;
+      rehitrdateServices(services, this.api).then(rehidrated => {
+        console.log('[ServicesStore::setup] Rehidrated services');
+        this.allServices = rehidrated.filter(service => service !== null);
+        this.hasServicesLocal = true;
+        this.isRehidratingServices = false;
+      });
+
+      // Update 
+      setTimeout(() => {
+        this.allServices = this.allServicesRequest.execute().result;
+        this.hasServicesLocal = true;
+      }, 10);
+    } else {
+      // Fetch from server
+      this.allServices = this.allServicesRequest.execute().result;
+      this.hasServicesLocal = true;
+    }
+
     // Single key reactions for the sake of your CPU
     reaction(
       () => this.stores.settings.app.enableSpellchecking,
@@ -96,17 +127,40 @@ export default class ServicesStore extends Store {
       () => this.stores.settings.app.spellcheckerLanguage,
       () => this._shareSettingsWithServiceProcess(),
     );
+
+    reaction(
+      () => this.allServices,
+      () => {
+        // Update local copy of data if needed
+        if (
+          (!this.hasServicesLocal || 
+          JSON.parse(JSON.stringify(this.allServices)) !== localStorage.getItem('services')) &&
+          this.allServices !== null &&
+          this.allServices.length > 0) {
+          console.log('[ServicesStore] Need to update localStorage');
+          localStorage.setItem('services', {
+            allServices: this.allServices,
+          });
+          this.hasServicesLocal = true;
+        }
+      }
+    )
   }
 
   @computed get all() {
     if (this.stores.user.isLoggedIn) {
-      const services = this.allServicesRequest.execute().result;
+      const hasServices = this.hasServicesLocal;
+      const services = hasServices ? this.allServices : this.allServicesRequest.execute().result;
+
+      // TODO: Remove when done debugging
+      console.log('[ServicesStore::all]', hasServices ? 'from local': 'from server', services ? services.length : 'no Service', services);
+      
       if (services) {
         return observable(services.slice().slice().sort((a, b) => a.order - b.order).map((s, index) => {
           s.index = index;
           return s;
         }));
-      }
+      } 
     }
     return [];
   }

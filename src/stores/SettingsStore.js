@@ -1,6 +1,6 @@
 import { ipcRenderer, remote } from 'electron';
 import {
-  action, computed, observable, reaction,
+  action, computed, observable, reaction
 } from 'mobx';
 import localStorage from 'mobx-localstorage';
 
