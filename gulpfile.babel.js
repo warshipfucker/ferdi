@@ -48,6 +48,10 @@ const paths = {
     src: 'recipes/*.json',
     dest: 'build/recipes/',
   },
+  appxAssets: {
+    src: 'build-helpers/appx/*.png',
+    dest: 'build/appx/',
+  },
   html: {
     src: 'src/**/*.html',
     dest: 'build/',
@@ -201,11 +205,15 @@ export function recipeInfo() {
   return gulp.src(paths.recipeInfo.src, { since: gulp.lastRun(recipeInfo) })
     .pipe(gulp.dest(paths.recipeInfo.dest));
 }
+export function appxAssets() {
+  return gulp.src(paths.appxAssets.src, { since: gulp.lastRun(appxAssets) })
+    .pipe(gulp.dest(paths.appxAssets.dest));
+}
 
 const build = gulp.series(
   clean,
   gulp.parallel(mvSrc, mvPackageJson, mvLernaPackages),
-  gulp.parallel(html, scripts, styles, recipes, recipeInfo),
+  gulp.parallel(html, scripts, styles, recipes, recipeInfo, appxAssets),
 );
 export { build };
 
