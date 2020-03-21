@@ -6,7 +6,7 @@ const debug = require('debug')('Ferdi:ipcApi:autoUpdate');
 export default (params) => {
   const disableUpdates = Boolean(params.settings.app.get('noUpdates'));
 
-  if (disableUpdates) {
+  if (disableUpdates || process.windowsStore) {
     autoUpdater.autoInstallOnAppQuit = false;
     autoUpdater.autoDownload = false;
   } else if (process.platform === 'darwin' || process.platform === 'win32' || process.env.APPIMAGE) {

@@ -554,32 +554,36 @@ export default @observer class EditSettingsForm extends Component {
             </div>
 
             {/* Updates */}
-            <h2 id="updates">{intl.formatMessage(messages.headlineUpdates)}</h2>
-            {updateIsReadyToInstall ? (
-              <Button
-                label={intl.formatMessage(messages.buttonInstallUpdate)}
-                onClick={installUpdate}
-              />
-            ) : (
-              <Button
-                buttonType="secondary"
-                label={intl.formatMessage(updateButtonLabelMessage)}
-                onClick={checkForUpdates}
-                disabled={noUpdates || isCheckingForUpdates || isUpdateAvailable}
-                loaded={!isCheckingForUpdates || !isUpdateAvailable}
-              />
+            {!process.windowsStore && (
+              <>
+                <h2 id="updates">{intl.formatMessage(messages.headlineUpdates)}</h2>
+                {updateIsReadyToInstall ? (
+                  <Button
+                    label={intl.formatMessage(messages.buttonInstallUpdate)}
+                    onClick={installUpdate}
+                  />
+                ) : (
+                  <Button
+                    buttonType="secondary"
+                    label={intl.formatMessage(updateButtonLabelMessage)}
+                    onClick={checkForUpdates}
+                    disabled={noUpdates || isCheckingForUpdates || isUpdateAvailable}
+                    loaded={!isCheckingForUpdates || !isUpdateAvailable}
+                  />
+                )}
+                <br />
+                <Toggle field={form.$('beta')} />
+                <Toggle field={form.$('noUpdates')} />
+                {intl.formatMessage(messages.currentVersion)}
+                {' '}
+                {remote.app.getVersion()}
+                <br />
+                <br />
+                {noUpdateAvailable && intl.formatMessage(messages.updateStatusUpToDate)}
+              </>
             )}
-            <br />
-            <Toggle field={form.$('beta')} />
-            <Toggle field={form.$('noUpdates')} />
-            {intl.formatMessage(messages.currentVersion)}
-            {' '}
-            {remote.app.getVersion()}
-            <br />
-            <br />
-            {noUpdateAvailable && intl.formatMessage(messages.updateStatusUpToDate)}
-            <p className="settings__message">
 
+            <p className="settings__message">
               <span className="mdi mdi-github-face" />
               <span>
                 Ferdi is based on
