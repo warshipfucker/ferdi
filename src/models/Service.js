@@ -1,22 +1,23 @@
 import { autorun, computed, observable } from 'mobx';
-import { ipcRenderer } from 'electron';
-import { webContents } from '@electron/remote';
+import { ipcRenderer, remote } from 'electron';
 import normalizeUrl from 'normalize-url';
-import { join } from 'path';
+import path from 'path';
 
-import { todosStore } from '../features/todos';
-import { isValidExternalURL } from '../helpers/url-helpers';
-import UserAgent from './UserAgent';
-import { DEFAULT_SERVICE_ORDER } from '../config';
+import userAgent from '../helpers/userAgent-helpers';
 
 const debug = require('debug')('Ferdi:Service');
+
+export const RESTRICTION_TYPES = {
+  SERVICE_LIMIT: 0,
+  CUSTOM_URL: 1,
+};
 
 export default class Service {
   id = '';
 
-  recipe = null;
+  recipe = '';
 
-  _webview = null;
+  webview = null;
 
   timer = null;
 
@@ -32,11 +33,13 @@ export default class Service {
 
   @observable unreadIndirectMessageCount = 0;
 
-  @observable order = DEFAULT_SERVICE_ORDER;
+  @observable order = 99;
 
   @observable isEnabled = true;
 
   @observable isMuted = false;
+
+  @observable isHibernating = false;
 
   @observable team = '';
 
@@ -74,34 +77,30 @@ export default class Service {
 
   @observable restrictionType = null;
 
-  @observable isHibernationEnabled = false;
-
-  @observable isHibernationRequested = false;
+  @observable disableHibernation = false;
 
   @observable lastUsed = Date.now(); // timestamp
 
-  @observable lastHibernated = null; // timestamp
+  @observable lastPoll = null;
 
-  @observable lastPoll = Date.now();
-
-  @observable lastPollAnswer = Date.now();
+  @observable lastPollAnswer = null;
 
   @observable lostRecipeConnection = false;
 
   @observable lostRecipeReloadAttempt = 0;
 
-  @observable userAgentModel = null;
+  @observable chromelessUserAgent = false;
 
   constructor(data, recipe) {
     if (!data) {
-      throw Error('Service config not valid');
+      console.error('Service config not valid');
+      return null;
     }
 
     if (!recipe) {
-      throw Error('Service recipe not valid');
+      console.error('Service recipe not valid');
+      return null;
     }
-
-    this.userAgentModel = new UserAgent(recipe.overrideUserAgent);
 
     this.id = data.id || this.id;
     this.name = data.name || this.name;
@@ -137,18 +136,19 @@ export default class Service {
 
     this.spellcheckerLanguage = data.spellcheckerLanguage !== undefined ? data.spellcheckerLanguage : this.spellcheckerLanguage;
 
-    this.userAgentPref = data.userAgentPref !== undefined ? data.userAgentPref : this.userAgentPref;
-
-    this.isHibernationEnabled = data.isHibernationEnabled !== undefined ? data.isHibernationEnabled : this.isHibernationEnabled;
+    this.disableHibernation = data.disableHibernation !== undefined ? data.disableHibernation : this.disableHibernation;
 
     this.recipe = recipe;
 
     // Check if "Hibernate on Startup" is enabled and hibernate all services except active one
-    const { hibernateOnStartup } = window.ferdi.stores.settings.app;
+    const {
+      hibernate,
+      hibernateOnStartup,
+    } = window.ferdi.stores.settings.app;
     // The service store is probably not loaded yet so we need to use localStorage data to get active service
     const isActive = window.localStorage.service && JSON.parse(window.localStorage.service).activeService === this.id;
-    if (hibernateOnStartup && !isActive) {
-      this.isHibernationRequested = true;
+    if (hibernate && hibernateOnStartup && !isActive) {
+      this.isHibernating = true;
     }
 
     autorun(() => {
@@ -175,30 +175,6 @@ export default class Service {
       url: this.url,
       hasCustomIcon: this.hasCustomIcon,
     };
-  }
-
-  @computed get isTodosService() {
-    return this.recipe.id === todosStore.todoRecipeId;
-  }
-
-  @computed get canHibernate() {
-    return this.isHibernationEnabled;
-  }
-
-  @computed get isHibernating() {
-    return this.canHibernate && this.isHibernationRequested;
-  }
-
-  get webview() {
-    if (this.isTodosService) {
-      return todosStore.webview;
-    }
-
-    return this._webview;
-  }
-
-  set webview(webview) {
-    this._webview = webview;
   }
 
   @computed get url() {
@@ -229,37 +205,29 @@ export default class Service {
       return this.iconUrl;
     }
 
-    return join(this.recipe.path, 'icon.svg');
+    return path.join(this.recipe.path, 'icon.svg');
   }
 
   @computed get hasCustomIcon() {
     return Boolean(this.iconUrl);
   }
 
+  @computed get iconPNG() {
+    return path.join(this.recipe.path, 'icon.png');
+  }
+
   @computed get userAgent() {
-    return this.userAgentModel.userAgent;
+    let ua = userAgent(this.chromelessUserAgent);
+    if (typeof this.recipe.overrideUserAgent === 'function') {
+      ua = this.recipe.overrideUserAgent();
+    }
+
+    return ua;
   }
 
-  @computed get userAgentPref() {
-    return this.userAgentModel.userAgentPref;
-  }
-
-  set userAgentPref(pref) {
-    this.userAgentModel.userAgentPref = pref;
-  }
-
-  @computed get defaultUserAgent() {
-    return this.userAgentModel.defaultUserAgent;
-  }
-
-  @computed get partition() {
-    return this.recipe.partition || `persist:service-${this.id}`;
-  }
 
   initializeWebViewEvents({ handleIPCMessage, openWindow, stores }) {
-    const webviewWebContents = webContents.fromId(this.webview.getWebContentsId());
-
-    this.userAgentModel.setWebviewReference(this.webview);
+    const webContents = remote.webContents.fromId(this.webview.getWebContentsId());
 
     // If the recipe has implemented modifyRequestHeaders,
     // Send those headers to ipcMain so that it can be set in session
@@ -274,37 +242,40 @@ export default class Service {
       debug(this.name, 'modifyRequestHeaders is not defined in the recipe');
     }
 
-    this.webview.addEventListener('ipc-message', async (e) => {
-      if (e.channel === 'inject-js-unsafe') {
-        await Promise.all(e.args.map((script) => this.webview.executeJavaScript(`"use strict"; (() => { ${script} })();`)));
-      } else {
-        handleIPCMessage({
-          serviceId: this.id,
-          channel: e.channel,
-          args: e.args,
-        });
+    const handleUserAgent = (url, forwardingHack = false) => {
+      if (url.startsWith('https://accounts.google.com')) {
+        if (!this.chromelessUserAgent) {
+          debug('Setting user agent to chromeless for url', url);
+          this.webview.setUserAgent(userAgent(true));
+          if (forwardingHack) {
+            this.webview.loadURL(url);
+          }
+          this.chromelessUserAgent = true;
+        }
+      } else if (this.chromelessUserAgent) {
+        debug('Setting user agent to contain chrome');
+        this.webview.setUserAgent(this.userAgent);
+        this.chromelessUserAgent = false;
       }
-    });
+    };
+
+    this.webview.addEventListener('ipc-message', e => handleIPCMessage({
+      serviceId: this.id,
+      channel: e.channel,
+      args: e.args,
+    }));
 
     this.webview.addEventListener('new-window', (event, url, frameName, options) => {
-      debug('new-window', event, url, frameName, options);
-      if (!isValidExternalURL(event.url)) {
-        return;
-      }
-      if (event.disposition === 'foreground-tab' || event.disposition === 'background-tab') {
-        openWindow({
-          event,
-          url,
-          frameName,
-          options,
-        });
-      } else {
-        ipcRenderer.send('open-browser-window', {
-          url: event.url,
-          serviceId: this.id,
-        });
-      }
+      openWindow({
+        event,
+        url,
+        frameName,
+        options,
+      });
     });
+
+
+    this.webview.addEventListener('will-navigate', event => handleUserAgent(event.url, true));
 
     this.webview.addEventListener('did-start-loading', (event) => {
       debug('Did start load', this.name, event);
@@ -323,7 +294,10 @@ export default class Service {
     };
 
     this.webview.addEventListener('did-frame-finish-load', didLoad.bind(this));
-    this.webview.addEventListener('did-navigate', didLoad.bind(this));
+    this.webview.addEventListener('did-navigate', (event) => {
+      handleUserAgent(event.url);
+      didLoad();
+    });
 
     this.webview.addEventListener('did-fail-load', (event) => {
       debug('Service failed to load', this.name, event);
@@ -339,19 +313,14 @@ export default class Service {
       this.hasCrashed = true;
     });
 
-    this.webview.addEventListener('found-in-page', ({ result }) => {
-      debug('Found in page', result);
-      this.webview.send('found-in-page', result);
-    });
-
-    webviewWebContents.on('login', (event, request, authInfo, callback) => {
+    webContents.on('login', (event, request, authInfo, callback) => {
       // const authCallback = callback;
       debug('browser login event', authInfo);
       event.preventDefault();
 
       if (authInfo.isProxy && authInfo.scheme === 'basic') {
         debug('Sending service echo ping');
-        webviewWebContents.send('get-service-id');
+        webContents.send('get-service-id');
 
         debug('Received service id', this.id);
 

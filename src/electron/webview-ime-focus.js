@@ -1,5 +1,5 @@
-import { webContents } from '@electron/remote';
-import { releaseDocumentFocus } from './webview-ime-focus-helpers';
+const { remote } = require('electron')
+const { releaseDocumentFocus } = require('./webview-ime-focus-helpers');
 
 function giveWebviewDocumentFocus(element) {
   releaseDocumentFocus();
@@ -10,7 +10,7 @@ function giveWebviewDocumentFocus(element) {
 }
 
 function elementIsUnfocusedWebview(element) {
-  return element.tagName === 'WEBVIEW' && !webContents.fromId(element.getWebContentsId()).isFocused();
+  return element.tagName === 'WEBVIEW' && !remote.webContents.fromId(element.getWebContentsId()).isFocused();
 }
 
 function webviewDidAutofocus(element) {
