@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { inject, observer } from 'mobx-react';
@@ -10,23 +11,20 @@ import TodosStore from '../../features/todos/store';
 import Form from '../../lib/Form';
 import { APP_LOCALES, SPELLCHECKER_LOCALES } from '../../i18n/languages';
 import {
-  HIBERNATION_STRATEGIES, SIDEBAR_WIDTH, ICON_SIZES, NAVIGATION_BAR_BEHAVIOURS, SEARCH_ENGINE_NAMES, TODO_APPS,
-  DEFAULT_SETTING_KEEP_ALL_WORKSPACES_LOADED, DEFAULT_IS_FEATURE_ENABLED_BY_USER, WAKE_UP_STRATEGIES,
+  DEFAULT_APP_SETTINGS, HIBERNATION_STRATEGIES, SIDEBAR_WIDTH, ICON_SIZES, NAVIGATION_BAR_BEHAVIOURS, TODO_APPS,
 } from '../../config';
-import { DEFAULT_APP_SETTINGS, isMac } from '../../environment';
+import { config as spellcheckerConfig } from '../../features/spellchecker';
 
 import { getSelectOptions } from '../../helpers/i18n-helpers';
 import { hash } from '../../helpers/password-helpers';
-import defaultUserAgent from '../../helpers/userAgent-helpers';
 
 import EditSettingsForm from '../../components/settings/settings/EditSettingsForm';
 import ErrorBoundary from '../../components/util/ErrorBoundary';
 
 import globalMessages from '../../i18n/globalMessages';
+import { DEFAULT_IS_FEATURE_ENABLED_BY_USER } from '../../features/todos';
 import WorkspacesStore from '../../features/workspaces/store';
-import ServicesStore from '../../stores/ServicesStore';
-
-const debug = require('debug')('Ferdi:EditSettingsScreen');
+import { DEFAULT_SETTING_KEEP_ALL_WORKSPACES_LOADED } from '../../features/workspaces';
 
 const messages = defineMessages({
   autoLaunchOnStart: {
@@ -47,11 +45,7 @@ const messages = defineMessages({
   },
   enableSystemTray: {
     id: 'settings.app.form.enableSystemTray',
-    defaultMessage: '!!!Always show Ferdi in System Tray',
-  },
-  enableMenuBar: {
-    id: 'settings.app.form.enableMenuBar',
-    defaultMessage: '!!!Always show Ferdi in Menu Bar',
+    defaultMessage: '!!!Always show Ferdi in system tray',
   },
   reloadAfterResume: {
     id: 'settings.app.form.reloadAfterResume',
@@ -61,33 +55,21 @@ const messages = defineMessages({
     id: 'settings.app.form.minimizeToSystemTray',
     defaultMessage: '!!!Minimize Ferdi to system tray',
   },
-  closeToSystemTray: {
-    id: 'settings.app.form.closeToSystemTray',
-    defaultMessage: '!!!Close Ferdi to system tray',
-  },
   privateNotifications: {
     id: 'settings.app.form.privateNotifications',
     defaultMessage: '!!!Don\'t show message content in notifications',
-  },
-  clipboardNotifications: {
-    id: 'settings.app.form.clipboardNotifications',
-    defaultMessage: '!!!Don\'t show notifications for clipboard events',
-  },
-  notifyTaskBarOnMessage: {
-    id: 'settings.app.form.notifyTaskBarOnMessage',
-    defaultMessage: '!!!Notify TaskBar/Dock on new message',
   },
   navigationBarBehaviour: {
     id: 'settings.app.form.navigationBarBehaviour',
     defaultMessage: '!!!Navigation bar behaviour',
   },
-  searchEngine: {
-    id: 'settings.app.form.searchEngine',
-    defaultMessage: '!!!Search engine',
-  },
   sentry: {
     id: 'settings.app.form.sentry',
     defaultMessage: '!!!Send telemetry data',
+  },
+  hibernate: {
+    id: 'settings.app.form.hibernate',
+    defaultMessage: '!!!Enable service hibernation',
   },
   hibernateOnStartup: {
     id: 'settings.app.form.hibernateOnStartup',
@@ -96,10 +78,6 @@ const messages = defineMessages({
   hibernationStrategy: {
     id: 'settings.app.form.hibernationStrategy',
     defaultMessage: '!!!Hibernation strategy',
-  },
-  wakeUpStrategy: {
-    id: 'settings.app.form.wakeUpStrategy',
-    defaultMessage: '!!!Wake up strategy',
   },
   predefinedTodoServer: {
     id: 'settings.app.form.predefinedTodoServer',
@@ -160,14 +138,6 @@ const messages = defineMessages({
   iconSize: {
     id: 'settings.app.form.iconSize',
     defaultMessage: '!!!Service icon size',
-  },
-  useVerticalStyle: {
-    id: 'settings.app.form.useVerticalStyle',
-    defaultMessage: '!!!Use vertical style',
-  },
-  alwaysShowWorkspaces: {
-    id: 'settings.app.form.alwaysShowWorkspaces',
-    defaultMessage: '!!!Always show workspace drawer',
   },
   accentColor: {
     id: 'settings.app.form.accentColor',
@@ -243,8 +213,6 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
       openInBackground: settingsData.autoLaunchInBackground,
     });
 
-    debug(`Updating settings store with data: ${settingsData}`);
-
     settings.update({
       type: 'app',
       data: {
@@ -253,16 +221,12 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
         reloadAfterResume: settingsData.reloadAfterResume,
         startMinimized: settingsData.startMinimized,
         minimizeToSystemTray: settingsData.minimizeToSystemTray,
-        closeToSystemTray: settingsData.closeToSystemTray,
         privateNotifications: settingsData.privateNotifications,
-        clipboardNotifications: settingsData.clipboardNotifications,
-        notifyTaskBarOnMessage: settingsData.notifyTaskBarOnMessage,
         navigationBarBehaviour: settingsData.navigationBarBehaviour,
-        searchEngine: settingsData.searchEngine,
         sentry: settingsData.sentry,
+        hibernate: settingsData.hibernate,
         hibernateOnStartup: settingsData.hibernateOnStartup,
         hibernationStrategy: settingsData.hibernationStrategy,
-        wakeUpStrategy: settingsData.wakeUpStrategy,
         predefinedTodoServer: settingsData.predefinedTodoServer,
         customTodoServer: settingsData.customTodoServer,
         lockingFeatureEnabled: settingsData.lockingFeatureEnabled,
@@ -279,14 +243,11 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
         universalDarkMode: settingsData.universalDarkMode,
         serviceRibbonWidth: settingsData.serviceRibbonWidth,
         iconSize: settingsData.iconSize,
-        useVerticalStyle: settingsData.useVerticalStyle,
-        alwaysShowWorkspaces: settingsData.alwaysShowWorkspaces,
         accentColor: settingsData.accentColor,
         showMessageBadgeWhenMuted: settingsData.showMessageBadgeWhenMuted,
         showDragArea: settingsData.showDragArea,
         enableSpellchecking: settingsData.enableSpellchecking,
-        spellcheckerLanguage: settingsData.spellcheckerLanguage,
-        userAgentPref: settingsData.userAgentPref,
+        spellcheckerLanguage: JSON.stringify(settingsData.spellcheckerLanguage),
         beta: settingsData.beta, // we need this info in the main process as well
         automaticUpdates: settingsData.automaticUpdates, // we need this info in the main process as well
         locale: settingsData.locale, // we need this info in the main process as well
@@ -316,6 +277,10 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
     }
   }
 
+  openProcessManager() {
+    ipcRenderer.send('openProcessManager');
+  }
+
   prepareForm() {
     const {
       app, settings, user, todos, workspaces,
@@ -332,18 +297,8 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
       sort: false,
     });
 
-    const searchEngines = getSelectOptions({
-      locales: SEARCH_ENGINE_NAMES,
-      sort: false,
-    });
-
     const hibernationStrategies = getSelectOptions({
       locales: HIBERNATION_STRATEGIES,
-      sort: false,
-    });
-
-    const wakeUpStrategies = getSelectOptions({
-      locales: WAKE_UP_STRATEGIES,
       sort: false,
     });
 
@@ -390,7 +345,7 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
           default: DEFAULT_APP_SETTINGS.startMinimized,
         },
         enableSystemTray: {
-          label: intl.formatMessage(isMac ? messages.enableMenuBar : messages.enableSystemTray),
+          label: intl.formatMessage(messages.enableSystemTray),
           value: settings.all.app.enableSystemTray,
           default: DEFAULT_APP_SETTINGS.enableSystemTray,
         },
@@ -404,25 +359,10 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
           value: settings.all.app.minimizeToSystemTray,
           default: DEFAULT_APP_SETTINGS.minimizeToSystemTray,
         },
-        closeToSystemTray: {
-          label: intl.formatMessage(messages.closeToSystemTray),
-          value: settings.all.app.closeToSystemTray,
-          default: DEFAULT_APP_SETTINGS.closeToSystemTray,
-        },
         privateNotifications: {
           label: intl.formatMessage(messages.privateNotifications),
           value: settings.all.app.privateNotifications,
           default: DEFAULT_APP_SETTINGS.privateNotifications,
-        },
-        clipboardNotifications: {
-          label: intl.formatMessage(messages.clipboardNotifications),
-          value: settings.all.app.clipboardNotifications,
-          default: DEFAULT_APP_SETTINGS.clipboardNotifications,
-        },
-        notifyTaskBarOnMessage: {
-          label: intl.formatMessage(messages.notifyTaskBarOnMessage),
-          value: settings.all.app.notifyTaskBarOnMessage,
-          default: DEFAULT_APP_SETTINGS.notifyTaskBarOnMessage,
         },
         navigationBarBehaviour: {
           label: intl.formatMessage(messages.navigationBarBehaviour),
@@ -430,16 +370,15 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
           default: DEFAULT_APP_SETTINGS.navigationBarBehaviour,
           options: navigationBarBehaviours,
         },
-        searchEngine: {
-          label: intl.formatMessage(messages.searchEngine),
-          value: settings.all.app.searchEngine,
-          default: DEFAULT_APP_SETTINGS.searchEngine,
-          options: searchEngines,
-        },
         sentry: {
           label: intl.formatMessage(messages.sentry),
           value: settings.all.app.sentry,
           default: DEFAULT_APP_SETTINGS.sentry,
+        },
+        hibernate: {
+          label: intl.formatMessage(messages.hibernate),
+          value: settings.all.app.hibernate,
+          default: DEFAULT_APP_SETTINGS.hibernate,
         },
         hibernateOnStartup: {
           label: intl.formatMessage(messages.hibernateOnStartup),
@@ -451,12 +390,6 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
           value: settings.all.app.hibernationStrategy,
           options: hibernationStrategies,
           default: DEFAULT_APP_SETTINGS.hibernationStrategy,
-        },
-        wakeUpStrategy: {
-          label: intl.formatMessage(messages.wakeUpStrategy),
-          value: settings.all.app.wakeUpStrategy,
-          options: wakeUpStrategies,
-          default: DEFAULT_APP_SETTINGS.wakeUpStrategy,
         },
         predefinedTodoServer: {
           label: intl.formatMessage(messages.predefinedTodoServer),
@@ -525,20 +458,14 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
         },
         enableSpellchecking: {
           label: intl.formatMessage(messages.enableSpellchecking),
-          value: settings.all.app.enableSpellchecking,
-          default: DEFAULT_APP_SETTINGS.enableSpellchecking,
+          value: !this.props.stores.user.data.isPremium && !spellcheckerConfig.isIncludedInCurrentPlan ? false : settings.all.app.enableSpellchecking,
+          default: !this.props.stores.user.data.isPremium && !spellcheckerConfig.isIncludedInCurrentPlan ? false : DEFAULT_APP_SETTINGS.enableSpellchecking,
         },
         spellcheckerLanguage: {
           label: intl.formatMessage(globalMessages.spellcheckerLanguage),
-          value: typeof settings.all.app.spellcheckerLanguage === 'string' ? [settings.all.app.spellcheckerLanguage] : settings.all.app.spellcheckerLanguage,
+          value: settings.all.app.spellcheckerLanguage,
           options: spellcheckingLanguages,
           default: DEFAULT_APP_SETTINGS.spellcheckerLanguage,
-        },
-        userAgentPref: {
-          label: intl.formatMessage(globalMessages.userAgentPref),
-          value: settings.all.app.userAgentPref,
-          default: DEFAULT_APP_SETTINGS.userAgentPref,
-          placeholder: defaultUserAgent(),
         },
         darkMode: {
           label: intl.formatMessage(messages.darkMode),
@@ -566,16 +493,6 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
           value: settings.all.app.iconSize,
           default: DEFAULT_APP_SETTINGS.iconSize,
           options: iconSizes,
-        },
-        useVerticalStyle: {
-          label: intl.formatMessage(messages.useVerticalStyle),
-          value: settings.all.app.useVerticalStyle,
-          default: DEFAULT_APP_SETTINGS.useVerticalStyle,
-        },
-        alwaysShowWorkspaces: {
-          label: intl.formatMessage(messages.alwaysShowWorkspaces),
-          value: settings.all.app.alwaysShowWorkspaces,
-          default: DEFAULT_APP_SETTINGS.alwaysShowWorkspaces,
         },
         accentColor: {
           label: intl.formatMessage(messages.accentColor),
@@ -630,10 +547,10 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
       app,
       todos,
       workspaces,
-      services,
     } = this.props.stores;
     const {
       updateStatus,
+      cacheSize,
       updateStatusTypes,
       isClearingAllCache,
       lockingFeatureEnabled,
@@ -655,21 +572,21 @@ export default @inject('stores', 'actions') @observer class EditSettingsScreen e
           isUpdateAvailable={updateStatus === updateStatusTypes.AVAILABLE}
           noUpdateAvailable={updateStatus === updateStatusTypes.NOT_AVAILABLE}
           updateIsReadyToInstall={updateStatus === updateStatusTypes.DOWNLOADED}
-          onSubmit={(d) => this.onSubmit(d)}
-          getCacheSize={() => app.cacheSize}
+          onSubmit={d => this.onSubmit(d)}
+          cacheSize={cacheSize}
           isClearingAllCache={isClearingAllCache}
           onClearAllCache={clearAllCache}
+          isSpellcheckerIncludedInCurrentPlan={spellcheckerConfig.isIncludedInCurrentPlan}
           isTodosEnabled={todos.isFeatureActive}
           isWorkspaceEnabled={workspaces.isFeatureActive}
           lockingFeatureEnabled={lockingFeatureEnabled}
           automaticUpdates={this.props.stores.settings.app.automaticUpdates}
+          hibernationEnabled={this.props.stores.settings.app.hibernate}
           isDarkmodeEnabled={this.props.stores.settings.app.darkMode}
           isAdaptableDarkModeEnabled={this.props.stores.settings.app.adaptableDarkMode}
           isTodosActivated={this.props.stores.todos.isFeatureEnabledByUser}
           isUsingCustomTodoService={this.props.stores.todos.isUsingCustomTodoService}
-          isNightlyEnabled={this.props.stores.settings.app.nightly}
-          hasAddedTodosAsService={services.isTodosServiceAdded}
-          isOnline={app.isOnline}
+          openProcessManager={() => this.openProcessManager()}
         />
       </ErrorBoundary>
     );
@@ -681,15 +598,27 @@ EditSettingsScreen.wrappedComponent.propTypes = {
     app: PropTypes.instanceOf(AppStore).isRequired,
     user: PropTypes.instanceOf(UserStore).isRequired,
     settings: PropTypes.instanceOf(SettingsStore).isRequired,
-    services: PropTypes.instanceOf(ServicesStore).isRequired,
     todos: PropTypes.instanceOf(TodosStore).isRequired,
     workspaces: PropTypes.instanceOf(WorkspacesStore).isRequired,
   }).isRequired,
   actions: PropTypes.shape({
-    app: PropTypes.instanceOf(AppStore).isRequired,
-    user: PropTypes.instanceOf(UserStore).isRequired,
-    settings: PropTypes.instanceOf(SettingsStore).isRequired,
-    todos: PropTypes.instanceOf(TodosStore).isRequired,
-    workspaces: PropTypes.instanceOf(WorkspacesStore).isRequired,
+    app: PropTypes.shape({
+      launchOnStartup: PropTypes.func.isRequired,
+      checkForUpdates: PropTypes.func.isRequired,
+      installUpdate: PropTypes.func.isRequired,
+      clearAllCache: PropTypes.func.isRequired,
+    }).isRequired,
+    settings: PropTypes.shape({
+      update: PropTypes.func.isRequired,
+    }).isRequired,
+    user: PropTypes.shape({
+      update: PropTypes.func.isRequired,
+    }).isRequired,
+    todos: PropTypes.shape({
+      toggleTodosFeatureVisibility: PropTypes.func.isRequired,
+    }).isRequired,
+    workspaces: PropTypes.shape({
+      toggleKeepAllWorkspacesLoadedSetting: PropTypes.func.isRequired,
+    }).isRequired,
   }).isRequired,
 };

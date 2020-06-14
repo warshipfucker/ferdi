@@ -366,7 +366,7 @@ export default @observer class EditServiceForm extends Component {
 
             {!isMac && (
               <div className="settings__settings-group">
-                <Select field={form.$('spellcheckerLanguage')} />
+                <Select field={form.$('spellcheckerLanguage')} multiple />
               </div>
             )}
 

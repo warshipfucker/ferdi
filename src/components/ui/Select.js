@@ -32,7 +32,7 @@ export default @observer class Select extends Component {
     const result = [];
     const options = element && element.options;
 
-    for (const option of options) {
+    for(const option of options) {
       if (option.selected) {
         result.push(option.value || option.text);
       }
@@ -84,13 +84,14 @@ export default @observer class Select extends Component {
         <select
           onChange={multiple ? (e) => this.multipleChange(e) : field.onChange}
           id={field.id}
-          defaultValue={selected}
+          defaultValue={field.value}
           className="franz-form__select"
           disabled={field.disabled || disabled}
           multiple={multiple}
           ref={this.element}
+          value={selected}
         >
-          {field.options.map((type) => (
+          {field.options.map(type => (
             <option
               key={type.value}
               value={type.value}
