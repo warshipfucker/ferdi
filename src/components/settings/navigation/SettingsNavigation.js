@@ -2,14 +2,16 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { defineMessages, intlShape } from 'react-intl';
 import { inject, observer } from 'mobx-react';
+import { ProBadge } from '@meetfranz/ui';
 import { RouterStore } from 'mobx-react-router';
 
-import { LOCAL_SERVER, LIVE_FERDI_API, LIVE_FRANZ_API } from '../../../config';
+import { LOCAL_SERVER, LIVE_API } from '../../../config';
 import Link from '../../ui/Link';
 import { workspaceStore } from '../../../features/workspaces';
 import UIStore from '../../../stores/UIStore';
 import SettingsStore from '../../../stores/SettingsStore';
 import UserStore from '../../../stores/UserStore';
+import { serviceLimitStore } from '../../../features/serviceLimit';
 
 const messages = defineMessages({
   availableServices: {
@@ -38,7 +40,7 @@ const messages = defineMessages({
   },
   supportFerdi: {
     id: 'settings.navigation.supportFerdi',
-    defaultMessage: '!!!About Ferdi',
+    defaultMessage: '!!!Support Ferdi',
   },
   logout: {
     id: 'settings.navigation.logout',
@@ -55,10 +57,13 @@ export default @inject('stores', 'actions') @observer class SettingsNavigation e
       router: PropTypes.instanceOf(RouterStore).isRequired,
     }).isRequired,
     actions: PropTypes.shape({
-      settings: PropTypes.instanceOf(SettingsStore).isRequired,
+      settings: PropTypes.shape({
+        update: PropTypes.func.isRequired,
+      }).isRequired,
     }).isRequired,
     serviceCount: PropTypes.number.isRequired,
     workspaceCount: PropTypes.number.isRequired,
+    extensionsCount: PropTypes.number.isRequired,
   };
 
   static contextTypes = {
@@ -78,7 +83,7 @@ export default @inject('stores', 'actions') @observer class SettingsNavigation e
         this.props.actions.settings.update({
           type: 'app',
           data: {
-            server: LIVE_FERDI_API,
+            server: LIVE_API,
           },
         });
       }
@@ -95,11 +100,15 @@ export default @inject('stores', 'actions') @observer class SettingsNavigation e
   }
 
   render() {
-    const { serviceCount, workspaceCount, stores } = this.props;
+    const {
+      serviceCount, workspaceCount, extensionsCount, stores,
+    } = this.props;
+    const { isDarkThemeActive } = stores.ui;
+    const { router, user } = stores;
     const { intl } = this.context;
     const isLoggedIn = Boolean(localStorage.getItem('authToken'));
     const isUsingWithoutAccount = stores.settings.app.server === LOCAL_SERVER;
-    const isUsingFranzServer = stores.settings.app.server === LIVE_FRANZ_API;
+    const isUsingFranzServer = stores.settings.app.server === 'https://api.franzinfra.com';
 
     return (
       <div className="settings-navigation">
@@ -120,6 +129,9 @@ export default @inject('stores', 'actions') @observer class SettingsNavigation e
           {' '}
           <span className="badge">
             {serviceCount}
+            {serviceLimitStore.serviceLimit !== 0 && (
+              `/${serviceLimitStore.serviceLimit}`
+            )}
           </span>
         </Link>
         {workspaceStore.isFeatureEnabled ? (
@@ -131,19 +143,31 @@ export default @inject('stores', 'actions') @observer class SettingsNavigation e
           >
             {intl.formatMessage(messages.yourWorkspaces)}
             {' '}
-            <span className="badge">{workspaceCount}</span>
+            {workspaceStore.isPremiumUpgradeRequired ? (
+              <ProBadge inverted={!isDarkThemeActive && workspaceStore.isSettingsRouteActive} />
+            ) : (
+              <span className="badge">{workspaceCount}</span>
+            )}
           </Link>
         ) : null}
-        {!isUsingWithoutAccount && (
-          <Link
-            to="/settings/user"
-            className="settings-navigation__link"
-            activeClassName="is-active"
-            disabled={!isLoggedIn}
-          >
-            {intl.formatMessage(messages.account)}
-          </Link>
-        )}
+        <Link
+          to="/settings/extensions"
+          className="settings-navigation__link"
+          activeClassName="is-active"
+          disabled={!isLoggedIn}
+        >
+          Your extensions
+          {' '}
+          <span className="badge">{extensionsCount}</span>
+        </Link>
+        <Link
+          to="/settings/user"
+          className="settings-navigation__link"
+          activeClassName="is-active"
+          disabled={!isLoggedIn}
+        >
+          {intl.formatMessage(messages.account)}
+        </Link>
         {isUsingFranzServer && (
           <Link
             to="/settings/team"
@@ -152,6 +176,9 @@ export default @inject('stores', 'actions') @observer class SettingsNavigation e
             disabled={!isLoggedIn}
           >
             {intl.formatMessage(messages.team)}
+            {!user.data.isPremium && (
+              <ProBadge inverted={!isDarkThemeActive && router.location.pathname === '/settings/team'} />
+            )}
           </Link>
         )}
         <Link

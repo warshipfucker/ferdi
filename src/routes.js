@@ -23,14 +23,16 @@ import PasswordScreen from './containers/auth/PasswordScreen';
 import ChangeServerScreen from './containers/auth/ChangeServerScreen';
 import SignupScreen from './containers/auth/SignupScreen';
 import ImportScreen from './containers/auth/ImportScreen';
-import SetupAssistentScreen from './containers/auth/SetupAssistantScreen';
+import PricingScreen from './containers/auth/PricingScreen';
 import InviteScreen from './containers/auth/InviteScreen';
 import AuthLayoutContainer from './containers/auth/AuthLayoutContainer';
+import SubscriptionPopupScreen from './containers/subscription/SubscriptionPopupScreen';
 import WorkspacesScreen from './features/workspaces/containers/WorkspacesScreen';
 import EditWorkspaceScreen from './features/workspaces/containers/EditWorkspaceScreen';
-import { WORKSPACES_ROUTES } from './features/workspaces/constants';
+import { WORKSPACES_ROUTES } from './features/workspaces';
+import ExtensionsScreen from './containers/settings/ExtensionsScreen';
 import AnnouncementScreen from './features/announcements/components/AnnouncementScreen';
-import { ANNOUNCEMENTS_ROUTES } from './features/announcements/constants';
+import { ANNOUNCEMENTS_ROUTES } from './features/announcements';
 
 import SettingsStore from './stores/SettingsStore';
 
@@ -61,6 +63,7 @@ export default @inject('stores', 'actions') @observer class Routes extends Compo
             <Route path="/settings/services/:action/:id" component={EditServiceScreen} />
             <Route path={WORKSPACES_ROUTES.ROOT} component={WorkspacesScreen} />
             <Route path={WORKSPACES_ROUTES.EDIT} component={EditWorkspaceScreen} />
+            <Route path="/settings/extensions" component={ExtensionsScreen} />
             <Route path="/settings/user" component={AccountScreen} />
             <Route path="/settings/user/edit" component={EditUserScreen} />
             <Route path="/settings/team" component={TeamScreen} />
@@ -77,13 +80,14 @@ export default @inject('stores', 'actions') @observer class Routes extends Compo
           <Route path="/auth/signup">
             <IndexRedirect to="/auth/signup/form" />
             <Route path="/auth/signup/form" component={SignupScreen} />
+            <Route path="/auth/signup/pricing" component={PricingScreen} />
             <Route path="/auth/signup/import" component={ImportScreen} />
-            <Route path="/auth/signup/setup" component={SetupAssistentScreen} />
             <Route path="/auth/signup/invite" component={InviteScreen} />
           </Route>
           <Route path="/auth/password" component={PasswordScreen} />
           <Route path="/auth/logout" component={LoginScreen} />
         </Route>
+        <Route path="/payment/:url" component={SubscriptionPopupScreen} />
         <Route path="*" component={AppLayoutContainer} />
       </Router>
     );
