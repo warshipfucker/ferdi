@@ -7,10 +7,8 @@ import { H1 } from '@meetfranz/ui';
 
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
-import { state as ModalState } from './store';
+import { state as ModalState } from '.';
 import SettingsStore from '../../stores/SettingsStore';
-import UIStore from '../../stores/UIStore';
-import UserStore from '../../stores/UserStore';
 
 const messages = defineMessages({
   title: {
@@ -55,7 +53,7 @@ const styles = () => ({
   },
 });
 
-export default @injectSheet(styles) @inject('stores', 'actions') @observer class NightlyBuildsModal extends Component {
+export default @injectSheet(styles) @inject('stores', 'actions') @observer class nightlyBuildsModal extends Component {
   static contextTypes = {
     intl: intlShape,
   };
@@ -124,14 +122,20 @@ export default @injectSheet(styles) @inject('stores', 'actions') @observer class
   }
 }
 
-NightlyBuildsModal.wrappedComponent.propTypes = {
+nightlyBuildsModal.wrappedComponent.propTypes = {
   stores: PropTypes.shape({
     settings: PropTypes.instanceOf(SettingsStore).isRequired,
   }).isRequired,
   actions: PropTypes.shape({
-    settings: PropTypes.instanceOf(SettingsStore).isRequired,
-    user: PropTypes.instanceOf(UserStore).isRequired,
-    ui: PropTypes.instanceOf(UIStore).isRequired,
+    settings: PropTypes.shape({
+      update: PropTypes.func.isRequired,
+    }).isRequired,
+    user: PropTypes.shape({
+      update: PropTypes.func.isRequired,
+    }).isRequired,
+    ui: PropTypes.shape({
+      openSettings: PropTypes.func.isRequired,
+    }).isRequired,
   }).isRequired,
   classes: PropTypes.object.isRequired,
 };

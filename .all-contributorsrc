@@ -6,11 +6,10 @@
   "files": [
     "README.md"
   ],
-  "imageSize": 42,
+  "imageSize": 40,
   "commit": true,
   "commitConvention": "none",
   "badgeTemplate": "<a href='#contributors-'><img src='https://img.shields.io/badge/contributors-<%= contributors.length %>-default.svg?logo=github' alt='Contributors'/></a>",
-  "contributorTemplate": "<a href='<%= contributor.profile %>' title='<%= contributor.name %>: <%= contributor.contributions.join(', ') %>'><img src='<%= contributor.avatar_url %>' alt='<%= contributor.login %>' style='border-radius:<%= options.imageSize %>px;width:<%= options.imageSize %>px;height:<%= options.imageSize %>px;'/></a>",
   "contributors": [
     {
       "login": "vantezzen",
@@ -748,9 +747,7 @@
       "avatar_url": "https://avatars1.githubusercontent.com/u/38888?v=4",
       "profile": "https://marussy.com",
       "contributions": [
-        "code",
-        "maintenance",
-        "review"
+        "code"
       ]
     },
     {
@@ -779,195 +776,8 @@
       "contributions": [
         "platform"
       ]
-    },
-    {
-      "login": "kawarimidoll",
-      "name": "カワリミ人形",
-      "avatar_url": "https://avatars0.githubusercontent.com/u/8146876?v=4",
-      "profile": "https://github.com/kawarimidoll",
-      "contributions": [
-        "doc"
-      ]
-    },
-    {
-      "login": "1mm0rt41PC",
-      "name": "1mm0rt41PC",
-      "avatar_url": "https://avatars0.githubusercontent.com/u/5358076?v=4",
-      "profile": "https://immortal-pc.info/",
-      "contributions": [
-        "code"
-      ]
-    },
-    {
-      "login": "k0staa",
-      "name": "Michał Kostewicz",
-      "avatar_url": "https://avatars.githubusercontent.com/u/6313392?v=4",
-      "profile": "http://code-addict.pl",
-      "contributions": [
-        "code"
-      ]
-    },
-    {
-      "login": "arioki1",
-      "name": "Yoga Setiawan",
-      "avatar_url": "https://avatars.githubusercontent.com/u/1139881?v=4",
-      "profile": "https://www.linkedin.com/in/yogainformatika/",
-      "contributions": [
-        "code",
-        "platform"
-      ]
-    },
-    {
-      "login": "MosheGross",
-      "name": "Moshe Gross",
-      "avatar_url": "https://avatars.githubusercontent.com/u/77084755?v=4",
-      "profile": "https://github.com/MosheGross",
-      "contributions": [
-        "code"
-      ]
-    },
-    {
-      "login": "stnkl",
-      "name": "Stephan Rumswinkel",
-      "avatar_url": "https://avatars.githubusercontent.com/u/17520641?v=4",
-      "profile": "https://github.com/stnkl",
-      "contributions": [
-        "code",
-        "bug"
-      ]
-    },
-    {
-      "login": "vraravam",
-      "name": "Vijay Raghavan Aravamudhan",
-      "avatar_url": "https://avatars.githubusercontent.com/u/69629?v=4",
-      "profile": "https://github.com/vraravam",
-      "contributions": [
-        "maintenance",
-        "doc",
-        "code",
-        "mentoring",
-        "review",
-        "infra",
-        "ideas",
-        "bug",
-        "content",
-        "userTesting",
-        "projectManagement"
-      ]
-    },
-    {
-      "login": "alopix",
-      "name": "Dustin",
-      "avatar_url": "https://avatars.githubusercontent.com/u/124467?v=4",
-      "profile": "https://dustin.meecolabs.eu/",
-      "contributions": [
-        "design"
-      ]
-    },
-    {
-      "login": "jakobsudau",
-      "name": "Jakob Felix Julius Sudau",
-      "avatar_url": "https://avatars.githubusercontent.com/u/721715?v=4",
-      "profile": "https://github.com/jakobsudau",
-      "contributions": [
-        "design"
-      ]
-    },
-    {
-      "login": "prasann",
-      "name": "Prasanna",
-      "avatar_url": "https://avatars.githubusercontent.com/u/380340?v=4",
-      "profile": "https://prasans.info",
-      "contributions": [
-        "code"
-      ]
-    },
-    {
-      "login": "markandan",
-      "name": "Markandan R",
-      "avatar_url": "https://avatars.githubusercontent.com/u/7975763?v=4",
-      "profile": "https://github.com/markandan",
-      "contributions": [
-        "code"
-      ]
-    },
-    {
-      "login": "mhatvan",
-      "name": "Markus Hatvan",
-      "avatar_url": "https://avatars.githubusercontent.com/u/16797721?v=4",
-      "profile": "https://markushatvan.com",
-      "contributions": [
-        "code",
-        "ideas",
-        "design",
-        "review",
-        "infra"
-      ]
-    },
-    {
-      "login": "sergiughf",
-      "name": "Sergiu Ghitea",
-      "avatar_url": "https://avatars.githubusercontent.com/u/28300158?v=4",
-      "profile": "https://sergiu.dev/",
-      "contributions": [
-        "code"
-      ]
-    },
-    {
-      "login": "ArviTheMan",
-      "name": "ArviTheMan",
-      "avatar_url": "https://avatars.githubusercontent.com/u/73516201?v=4",
-      "profile": "https://github.com/ArviTheMan",
-      "contributions": [
-        "doc"
-      ]
-    },
-    {
-      "login": "eltociear",
-      "name": "Ikko Ashimine",
-      "avatar_url": "https://avatars.githubusercontent.com/u/22633385?v=4",
-      "profile": "https://bandism.net/",
-      "contributions": [
-        "code"
-      ]
-    },
-    {
-      "login": "madsmtm",
-      "name": "Mads Marquart",
-      "avatar_url": "https://avatars.githubusercontent.com/u/10577181?v=4",
-      "profile": "https://github.com/madsmtm",
-      "contributions": [
-        "translation"
-      ]
-    },
-    {
-      "login": "mloskot",
-      "name": "Mateusz Łoskot",
-      "avatar_url": "https://avatars.githubusercontent.com/u/80741?v=4",
-      "profile": "http://mateusz.loskot.net/",
-      "contributions": [
-        "doc"
-      ]
-    },
-    {
-      "login": "skoshy",
-      "name": "Stefan K",
-      "avatar_url": "https://avatars.githubusercontent.com/u/369825?v=4",
-      "profile": "https://github.com/skoshy",
-      "contributions": [
-        "doc"
-      ]
-    },
-    {
-      "login": "graves501",
-      "name": "graves501",
-      "avatar_url": "https://avatars.githubusercontent.com/u/11211125?v=4",
-      "profile": "https://github.com/graves501",
-      "contributions": [
-        "doc"
-      ]
     }
   ],
-  "contributorsPerLine": 16,
+  "contributorsPerLine": 6,
   "skipCi": true
 }

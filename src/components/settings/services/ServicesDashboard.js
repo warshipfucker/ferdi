@@ -10,6 +10,7 @@ import Loader from '../../ui/Loader';
 import FAB from '../../ui/FAB';
 import ServiceItem from './ServiceItem';
 import Appear from '../../ui/effects/Appear';
+import LimitReachedInfobox from '../../../features/serviceLimit/components/LimitReachedInfobox';
 
 const messages = defineMessages({
   headline: {
@@ -26,7 +27,7 @@ const messages = defineMessages({
   },
   noServiceFound: {
     id: 'settings.recipes.nothingFound',
-    defaultMessage: '!!!Sorry, but no service matched your search term. Please note that the website might show more services that have been added to Ferdi since the version that you are currently on. To get those new services, please consider upgrading to a newer version of Ferdi.',
+    defaultMessage: '!!!Sorry, but no service matched your search term.',
   },
   discoverServices: {
     id: 'settings.services.discoverServices',
@@ -92,11 +93,12 @@ export default @observer class ServicesDashboard extends Component {
         <div className="settings__header">
           <h1>{intl.formatMessage(messages.headline)}</h1>
         </div>
+        <LimitReachedInfobox />
         <div className="settings__body">
-          {(services.length !== 0 || searchNeedle) && !isLoading && (
+          {services.length !== 0 && !isLoading && (
             <SearchInput
               placeholder={intl.formatMessage(messages.searchService)}
-              onChange={(needle) => filterServices({ needle })}
+              onChange={needle => filterServices({ needle })}
               onReset={() => resetFilter()}
               autoFocus
             />
@@ -163,7 +165,7 @@ export default @observer class ServicesDashboard extends Component {
           ) : (
             <table className="service-table">
               <tbody>
-                {services.map((service) => (
+                {services.map(service => (
                   <ServiceItem
                     key={service.id}
                     service={service}

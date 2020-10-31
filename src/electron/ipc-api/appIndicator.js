@@ -1,15 +1,14 @@
 import { app, ipcMain } from 'electron';
-import { join } from 'path';
+import path from 'path';
 import { autorun } from 'mobx';
-import { isMac, isWindows, isLinux } from '../../environment';
 
 const INDICATOR_TASKBAR = 'taskbar';
-const FILE_EXTENSION = isWindows ? 'ico' : 'png';
+const FILE_EXTENSION = process.platform === 'win32' ? 'ico' : 'png';
 
 let isTrayIconEnabled;
 
 function getAsset(type, asset) {
-  return join(
+  return path.join(
     __dirname, '..', '..', 'assets', 'images', type, process.platform, `${asset}.${FILE_EXTENSION}`,
   );
 }
@@ -26,31 +25,33 @@ export default (params) => {
   });
 
   ipcMain.on('updateAppIndicator', (event, args) => {
+
     // Flash TaskBar for windows, bounce Dock on Mac
     if (!app.mainWindow.isFocused()) {
       if (params.settings.app.get('notifyTaskBarOnMessage')) {
-        if (isWindows) {
+        if (process.platform === 'win32') {
           app.mainWindow.flashFrame(true);
           app.mainWindow.once('focus', () => app.mainWindow.flashFrame(false));
-        } else if (isMac) {
+        } else if (process.platform === 'darwin') {
           app.dock.bounce('informational');
         }
       }
     }
 
     // Update badge
-    if (isMac
+    if (process.platform === 'darwin'
       && typeof (args.indicator) === 'string') {
       app.dock.setBadge(args.indicator);
     }
 
-    if ((isMac || isLinux)
+    if ((process.platform === 'darwin'
+      || process.platform === 'linux')
       && typeof (args.indicator) === 'number'
     ) {
       app.badgeCount = args.indicator;
     }
 
-    if (isWindows) {
+    if (process.platform === 'win32') {
       if (typeof args.indicator === 'number'
         && args.indicator !== 0) {
         params.mainWindow.setOverlayIcon(

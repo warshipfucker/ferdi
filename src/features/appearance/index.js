@@ -1,10 +1,17 @@
-import color from 'color';
 import { reaction } from 'mobx';
 import themeInfo from '../../assets/themeInfo.json';
-import { iconSizeBias } from '../../config';
-import { DEFAULT_APP_SETTINGS } from '../../environment';
+import { DEFAULT_APP_SETTINGS, iconSizeBias } from '../../config';
 
 const STYLE_ELEMENT_ID = 'custom-appearance-style';
+
+// Additional styles needed to make accent colors work properly
+// "[ACCENT]" will be replaced with the accent color
+const ACCENT_ADDITIONAL_STYLES = `
+.franz-form__button {
+  background: inherit !important;
+  border: 2px solid [ACCENT] !important;
+}
+`;
 
 function createStyleElement() {
   const styles = document.createElement('style');
@@ -19,59 +26,18 @@ function setAppearance(style) {
   styleElement.innerHTML = style;
 }
 
-// See https://github.com/Qix-/color/issues/53#issuecomment-656590710
-function darkenAbsolute(originalColor, absoluteChange) {
-  const originalLightness = originalColor.lightness();
-  return originalColor.lightness(originalLightness - absoluteChange);
-}
-
-function generateAccentStyle(accentColorStr) {
+function generateAccentStyle(color) {
   let style = '';
 
   Object.keys(themeInfo).forEach((property) => {
     style += `
       ${themeInfo[property]} {
-        ${property}: ${accentColorStr};
+        ${property}: ${color};
       }
     `;
   });
 
-  let accentColor = color(DEFAULT_APP_SETTINGS.accentColor);
-  try {
-    accentColor = color(accentColorStr);
-  } catch (e) {
-    // Ignore invalid accent color.
-  }
-  const darkerColorStr = darkenAbsolute(accentColor, 5).hex();
-  style += `
-    a.button:hover, button.button:hover {
-      background: ${darkenAbsolute(accentColor, 10).hex()};
-    }
-
-    .franz-form__button:hover,
-    .franz-form__button.franz-form__button--inverted:hover,
-    .settings .settings__close:hover,
-    .theme__dark .franz-form__button:hover,
-    .theme__dark .franz-form__button.franz-form__button--inverted:hover,
-    .theme__dark .settings .settings__close:hover {
-      background: ${darkerColorStr};
-    }
-
-    .franz-form__button:active,
-    .theme__dark .franz-form__button:active {
-      background: ${darkerColorStr};
-    }
-
-    .theme__dark .franz-form__button.franz-form__button--inverted,
-    .franz-form__button.franz-form__button--inverted {
-      background: none;
-      border-color: ${accentColorStr};
-    }
-
-    .tab-item.is-active {
-      background: ${accentColor.lighten(0.35).hex()};
-    }
-  `;
+  style += ACCENT_ADDITIONAL_STYLES.replace(/\[ACCENT\]/g, color);
 
   return style;
 }
@@ -94,10 +60,10 @@ function generateServiceRibbonWidthStyle(widthStr, iconSizeStr, vertical) {
     }
   ` : `
     .sidebar {
-      width: ${width}px !important;
+      width: ${width - 1}px !important;
     }
     .tab-item {
-      width: ${width}px !important;
+      width: ${width - 2}px !important;
       height: ${width - 5 + iconSize}px !important;
     }
     .tab-item .tab-item__icon {
@@ -105,9 +71,6 @@ function generateServiceRibbonWidthStyle(widthStr, iconSizeStr, vertical) {
     }
     .sidebar__button {
       font-size: ${width / 3}px !important;
-    }
-    .todos__todos-panel--expanded {
-      width: calc(100% - ${300 + width}px) !important;
     }
   `;
 }
@@ -139,31 +102,22 @@ function generateVerticalStyle(widthStr, alwaysShowWorkspaces) {
     document.head.appendChild(link);
   }
   const width = Number(widthStr);
-  const sidebarWidthStr = `${width - 4}px`;
 
   return `
-  .sidebar {
-    height: ${sidebarWidthStr} !important;
+  .app_service {
+    top: ${width}px !important;
+  }
+  .darwin .sidebar {
+    height: ${width + 19}px !important;
+  }
+  .darwin .sidebar .sidebar__button--workspaces.is-active {
+      height: ${width - 20}px !important;
+  }
   ${alwaysShowWorkspaces ? `
+  .sidebar {
     width: calc(100% - 300px) !important;
+  }
   ` : ''}
-  }
-
-  .sidebar .sidebar__button {
-    width: ${width}px;
-  }
-
-  .app .app__content {
-    padding-top: ${sidebarWidthStr} !important;
-  }
-
-  .workspaces-drawer {
-    maring-top: -${sidebarWidthStr} !important;
-  }
-
-  .todos__todos-panel--expanded {
-    width: calc(100% - 300px) !important;
-  }
   `;
 }
 
@@ -191,7 +145,7 @@ function generateStyle(settings) {
     alwaysShowWorkspaces,
   } = settings;
 
-  if (accentColor.toLowerCase() !== DEFAULT_APP_SETTINGS.accentColor.toLowerCase()) {
+  if (accentColor !== DEFAULT_APP_SETTINGS.accentColor) {
     style += generateAccentStyle(accentColor);
   }
   if (serviceRibbonWidth !== DEFAULT_APP_SETTINGS.serviceRibbonWidth
@@ -235,6 +189,8 @@ export default function initAppearance(stores) {
     () => {
       updateStyle(settings.all.app);
     },
-    { fireImmediately: true },
+    {
+      fireImmediately: true,
+    },
   );
 }

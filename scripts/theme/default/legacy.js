@@ -1,4 +1,4 @@
-/* legacy config, injected into sass at build time */
+/* legacy config, injected into sass */
 export const themeBrandPrimary = '#7266F0';
 export const themeBrandSuccess = '#5cb85c';
 export const themeBrandInfo = '#5bc0de';
@@ -21,6 +21,7 @@ export const themeTextColor = themeGrayDark;
 export const themeTransitionTime = '.5s';
 
 export const themeInsetShadow = 'inset 0 2px 5px rgba(0, 0, 0, .03)';
+
 
 export const darkThemeBlack = '#1A1A1A';
 

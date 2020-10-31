@@ -14,7 +14,6 @@ export default @observer class ToggleRaw extends Component {
       id: PropTypes.string,
       name: PropTypes.string,
       label: PropTypes.string,
-      error: PropTypes.string,
     }).isRequired,
     className: PropTypes.string,
     showLabel: PropTypes.bool,
@@ -64,7 +63,7 @@ export default @observer class ToggleRaw extends Component {
             name={field.name}
             value={field.name}
             checked={field.value}
-            onChange={(e) => (!disabled ? this.onChange(e) : null)}
+            onChange={e => (!disabled ? this.onChange(e) : null)}
           />
         </label>
         {field.error && <div className={field.error}>{field.error}</div>}

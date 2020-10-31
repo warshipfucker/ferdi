@@ -6,13 +6,15 @@ import { Link } from 'react-router';
 
 import { Button, Input } from '@meetfranz/forms';
 import injectSheet from 'react-jss';
-import { H3, H2 } from '@meetfranz/ui';
+import { H3, H2, ProBadge } from '@meetfranz/ui';
 import SearchInput from '../../ui/SearchInput';
 import Infobox from '../../ui/Infobox';
 import RecipeItem from './RecipeItem';
 import Loader from '../../ui/Loader';
 import Appear from '../../ui/effects/Appear';
 import { FRANZ_SERVICE_REQUEST } from '../../../config';
+import LimitReachedInfobox from '../../../features/serviceLimit/components/LimitReachedInfobox';
+import PremiumFeatureContainer from '../../ui/PremiumFeatureContainer';
 import RecipePreview from '../../../models/RecipePreview';
 
 const messages = defineMessages({
@@ -24,6 +26,10 @@ const messages = defineMessages({
     id: 'settings.searchService',
     defaultMessage: '!!!Search service',
   },
+  mostPopularRecipes: {
+    id: 'settings.recipes.mostPopular',
+    defaultMessage: '!!!Most popular',
+  },
   allRecipes: {
     id: 'settings.recipes.all',
     defaultMessage: '!!!All services',
@@ -34,7 +40,7 @@ const messages = defineMessages({
   },
   nothingFound: {
     id: 'settings.recipes.nothingFound',
-    defaultMessage: '!!!Sorry, but no service matched your search term - but you can still probably add it using the "Custom Website" option. Please note that the website might show more services that have been added to Ferdi since the version that you are currently on. To get those new services, please consider upgrading to a newer version of Ferdi.',
+    defaultMessage: '!!!Sorry, but no service matched your search term - but you can still probably add it using the "Custom Website" option:',
   },
   servicesSuccessfulAddedInfo: {
     id: 'settings.recipes.servicesSuccessfulAddedInfo',
@@ -103,6 +109,7 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
     recipes: MobxPropTypes.arrayOrObservableArray.isRequired,
     customWebsiteRecipe: PropTypes.instanceOf(RecipePreview).isRequired,
     isLoading: PropTypes.bool.isRequired,
+    hasLoadedRecipes: PropTypes.bool.isRequired,
     showAddServiceInterface: PropTypes.func.isRequired,
     searchRecipes: PropTypes.func.isRequired,
     resetSearch: PropTypes.func.isRequired,
@@ -113,6 +120,7 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
     openRecipeDirectory: PropTypes.func.isRequired,
     openDevDocs: PropTypes.func.isRequired,
     classes: PropTypes.object.isRequired,
+    isCommunityRecipesIncludedInCurrentPlan: PropTypes.bool.isRequired,
   };
 
   static defaultProps = {
@@ -129,6 +137,7 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
       recipes,
       customWebsiteRecipe,
       isLoading,
+      hasLoadedRecipes,
       showAddServiceInterface,
       searchRecipes,
       resetSearch,
@@ -139,8 +148,10 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
       openRecipeDirectory,
       openDevDocs,
       classes,
+      isCommunityRecipesIncludedInCurrentPlan,
     } = this.props;
     const { intl } = this.context;
+
 
     const communityRecipes = recipes.filter(r => !r.isDevRecipe);
     const devRecipes = recipes.filter(r => r.isDevRecipe);
@@ -152,6 +163,7 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
         <div className="settings__header">
           <h1>{intl.formatMessage(messages.headline)}</h1>
         </div>
+        <LimitReachedInfobox />
         <div className="settings__body recipes">
           {serviceStatus.length > 0 && serviceStatus.includes('created') && (
             <Appear>
@@ -178,6 +190,14 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
               activeClassName={`${!searchNeedle ? 'badge--primary' : ''}`}
               onClick={() => resetSearch()}
             >
+              {intl.formatMessage(messages.mostPopularRecipes)}
+            </Link>
+            <Link
+              to="/settings/recipes/all"
+              className="badge"
+              activeClassName={`${!searchNeedle ? 'badge--primary' : ''}`}
+              onClick={() => resetSearch()}
+            >
               {intl.formatMessage(messages.allRecipes)}
             </Link>
             <Link
@@ -188,7 +208,7 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
             >
               {intl.formatMessage(messages.customRecipes)}
             </Link>
-            <a href={FRANZ_SERVICE_REQUEST} target="_blank" className="link recipes__service-request" rel="noreferrer">
+            <a href={FRANZ_SERVICE_REQUEST} target="_blank" className="link recipes__service-request">
               {intl.formatMessage(messages.missingService)}
               {' '}
               <i className="mdi mdi-open-in-new" />
@@ -203,6 +223,9 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
                 <>
                   <H2>
                     {intl.formatMessage(messages.headlineCustomRecipes)}
+                    {!isCommunityRecipesIncludedInCurrentPlan && (
+                      <ProBadge className={classes.proBadge} />
+                    )}
                   </H2>
                   <div className={classes.devRecipeIntroContainer}>
                     <p>
@@ -228,33 +251,37 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
                   </div>
                 </>
               )}
-              {recipeFilter === 'dev' && communityRecipes.length > 0 && (
-                <H3>{intl.formatMessage(messages.headlineCommunityRecipes)}</H3>
-              )}
-              <div className="recipes__list">
-                {recipes.length === 0 && recipeFilter !== 'dev' && (
-                  <div className="align-middle settings__empty-state">
-                    <span className="emoji">
-                      <img src="./assets/images/emoji/dontknow.png" alt="" />
-                    </span>
-
-                    <p className="settings__empty-state-text">{intl.formatMessage(messages.nothingFound)}</p>
-
-                    <RecipeItem
-                      key={customWebsiteRecipe.id}
-                      recipe={customWebsiteRecipe}
-                      onClick={() => isLoggedIn && showAddServiceInterface({ recipeId: customWebsiteRecipe.id })}
-                    />
-                  </div>
+              <PremiumFeatureContainer
+                condition={(recipeFilter === 'dev' && communityRecipes.length > 0) && !isCommunityRecipesIncludedInCurrentPlan}
+              >
+                {recipeFilter === 'dev' && communityRecipes.length > 0 && (
+                  <H3>{intl.formatMessage(messages.headlineCommunityRecipes)}</H3>
                 )}
-                {communityRecipes.map(recipe => (
-                  <RecipeItem
-                    key={recipe.id}
-                    recipe={recipe}
-                    onClick={() => isLoggedIn && showAddServiceInterface({ recipeId: recipe.id })}
-                  />
-                ))}
-              </div>
+                <div className="recipes__list">
+                  {hasLoadedRecipes && recipes.length === 0 && recipeFilter !== 'dev' && (
+                    <div className="align-middle settings__empty-state">
+                      <span className="emoji">
+                        <img src="./assets/images/emoji/dontknow.png" alt="" />
+                      </span>
+
+                      <p className="settings__empty-state-text">{intl.formatMessage(messages.nothingFound)}</p>
+                      
+                      <RecipeItem
+                        key={customWebsiteRecipe.id}
+                        recipe={customWebsiteRecipe}
+                        onClick={() => isLoggedIn && showAddServiceInterface({ recipeId: customWebsiteRecipe.id })}
+                      />
+                    </div>
+                  )}
+                  {communityRecipes.map(recipe => (
+                    <RecipeItem
+                      key={recipe.id}
+                      recipe={recipe}
+                      onClick={() => isLoggedIn && showAddServiceInterface({ recipeId: recipe.id })}
+                    />
+                  ))}
+                </div>
+              </PremiumFeatureContainer>
               {recipeFilter === 'dev' && devRecipes.length > 0 && (
                 <div className={classes.devRecipeList}>
                   <H3>{intl.formatMessage(messages.headlineDevRecipes)}</H3>

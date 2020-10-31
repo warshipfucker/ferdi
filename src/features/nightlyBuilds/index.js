@@ -1,10 +1,14 @@
-import { state as ModalState } from './store';
+import { observable } from 'mobx';
 
 export { default as Component } from './Component';
 
 const debug = require('debug')('Ferdi:feature:nightlyBuilds');
 
-const state = ModalState;
+const defaultState = {
+  isModalVisible: false,
+};
+
+export const state = observable(defaultState);
 
 export default function initialize() {
   debug('Initialize nightlyBuilds feature');

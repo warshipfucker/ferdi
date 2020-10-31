@@ -1,7 +1,5 @@
 import { app, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
-import { GITHUB_NIGHTLIES_REPO_NAME, GITHUB_ORG_NAME } from '../../config';
-import { isMac, isWindows } from '../../environment';
 
 const debug = require('debug')('Ferdi:ipcApi:autoUpdate');
 
@@ -11,7 +9,7 @@ export default (params) => {
   if (!enableUpdate) {
     autoUpdater.autoInstallOnAppQuit = false;
     autoUpdater.autoDownload = false;
-  } else if (isMac || isWindows || process.env.APPIMAGE) {
+  } else if (process.platform === 'darwin' || process.platform === 'win32' || process.env.APPIMAGE) {
     ipcMain.on('autoUpdate', (event, args) => {
       if (enableUpdate) {
         try {
@@ -19,19 +17,17 @@ export default (params) => {
           autoUpdater.allowPrerelease = Boolean(params.settings.app.get('beta'));
 
           if (params.settings.app.get('nightly')) {
-            autoUpdater.allowPrerelease = Boolean(params.settings.app.get('nightly'));
             autoUpdater.setFeedURL({
               provider: 'github',
-              owner: GITHUB_ORG_NAME,
-              repo: GITHUB_NIGHTLIES_REPO_NAME,
+              repo: 'nightlies',
+              owner: 'getferdi',
             });
           }
 
           if (args.action === 'check') {
-            debug('checking for update');
             autoUpdater.checkForUpdates();
           } else if (args.action === 'install') {
-            debug('installing update');
+            debug('install update');
             autoUpdater.quitAndInstall();
             // we need to send a quit event
             setTimeout(() => {
