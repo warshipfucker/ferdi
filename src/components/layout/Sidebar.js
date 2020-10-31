@@ -6,12 +6,14 @@ import { inject, observer } from 'mobx-react';
 import { Link } from 'react-router';
 
 import Tabbar from '../services/tabs/Tabbar';
-import { settingsShortcutKey, lockFerdiShortcutKey, todosToggleShortcutKey, workspaceToggleShortcutKey, addNewServiceShortcutKey, muteFerdiShortcutKey } from '../../environment';
+import { ctrlKey, isMac } from '../../environment';
 import { workspaceStore } from '../../features/workspaces';
 import { todosStore } from '../../features/todos';
 import { todoActions } from '../../features/todos/actions';
-import AppStore from '../../stores/AppStore';
-import SettingsStore from '../../stores/SettingsStore';
+import ExtensionsActions from './ExtensionsActions';
+
+// Platform specific shortcut keys
+const settingsShortcutKey = isMac ? ',' : 'P';
 
 const messages = defineMessages({
   settings: {
@@ -55,31 +57,10 @@ const messages = defineMessages({
 export default @inject('stores', 'actions') @observer class Sidebar extends Component {
   static propTypes = {
     openSettings: PropTypes.func.isRequired,
-    closeSettings: PropTypes.func.isRequired,
-    setActive: PropTypes.func.isRequired,
-    reorder: PropTypes.func.isRequired,
-    reload: PropTypes.func.isRequired,
-    toggleNotifications: PropTypes.func.isRequired,
-    toggleAudio: PropTypes.func.isRequired,
-    toggleDarkMode: PropTypes.func.isRequired,
-    showMessageBadgeWhenMutedSetting: PropTypes.bool.isRequired,
-    showMessageBadgesEvenWhenMuted: PropTypes.bool.isRequired,
-    deleteService: PropTypes.func.isRequired,
-    updateService: PropTypes.func.isRequired,
-    hibernateService: PropTypes.func.isRequired,
-    wakeUpService: PropTypes.func.isRequired,
     toggleMuteApp: PropTypes.func.isRequired,
     isAppMuted: PropTypes.bool.isRequired,
     isWorkspaceDrawerOpen: PropTypes.bool.isRequired,
     toggleWorkspaceDrawer: PropTypes.func.isRequired,
-    isTodosServiceActive: PropTypes.bool.isRequired,
-    stores: PropTypes.shape({
-      app: PropTypes.instanceOf(AppStore).isRequired,
-      settings: PropTypes.instanceOf(SettingsStore).isRequired,
-    }).isRequired,
-    actions: PropTypes.shape({
-      settings: PropTypes.instanceOf(SettingsStore).isRequired,
-    }).isRequired,
   };
 
   static contextTypes = {
@@ -116,7 +97,6 @@ export default @inject('stores', 'actions') @observer class Sidebar extends Comp
       toggleWorkspaceDrawer,
       stores,
       actions,
-      isTodosServiceActive,
     } = this.props;
     const { intl } = this.context;
     const todosToggleMessage = (
@@ -135,6 +115,9 @@ export default @inject('stores', 'actions') @observer class Sidebar extends Comp
           enableToolTip={() => this.enableToolTip()}
           disableToolTip={() => this.disableToolTip()}
         />
+
+        <ExtensionsActions />
+
         { isLoggedIn ? (
           <>
             { stores.settings.all.app.lockingFeatureEnabled ? (
@@ -149,7 +132,7 @@ export default @inject('stores', 'actions') @observer class Sidebar extends Comp
                     },
                   });
                 }}
-                data-tip={`${intl.formatMessage(messages.lockFerdi)} (${lockFerdiShortcutKey(false)})`}
+                data-tip={`${intl.formatMessage(messages.lockFerdi)} (${ctrlKey}+Shift+L)`}
               >
                 <i className="mdi mdi-lock" />
               </button>
@@ -161,9 +144,8 @@ export default @inject('stores', 'actions') @observer class Sidebar extends Comp
                   todoActions.toggleTodosPanel();
                   this.updateToolTip();
                 }}
-                disabled={isTodosServiceActive}
-                className={`sidebar__button sidebar__button--todos ${todosStore.isTodosPanelVisible ? 'is-active' : ''}`}
-                data-tip={`${intl.formatMessage(todosToggleMessage)} (${todosToggleShortcutKey(false)})`}
+                className={`sidebar__button sidebar__button--todos  ${todosStore.isTodosPanelVisible ? 'is-active' : ''}`}
+                data-tip={`${intl.formatMessage(todosToggleMessage)} (${ctrlKey}+T)`}
               >
                 <i className="mdi mdi-check-all" />
               </button>
@@ -176,7 +158,7 @@ export default @inject('stores', 'actions') @observer class Sidebar extends Comp
                   this.updateToolTip();
                 }}
                 className={`sidebar__button sidebar__button--workspaces ${isWorkspaceDrawerOpen ? 'is-active' : ''}`}
-                data-tip={`${intl.formatMessage(workspaceToggleMessage)} (${workspaceToggleShortcutKey(false)})`}
+                data-tip={`${intl.formatMessage(workspaceToggleMessage)} (${ctrlKey}+D)`}
               >
                 <i className="mdi mdi-view-grid" />
               </button>
@@ -188,7 +170,7 @@ export default @inject('stores', 'actions') @observer class Sidebar extends Comp
                 this.updateToolTip();
               }}
               className={`sidebar__button sidebar__button--audio ${isAppMuted ? 'is-muted' : ''}`}
-              data-tip={`${intl.formatMessage(isAppMuted ? messages.unmute : messages.mute)} (${muteFerdiShortcutKey(false)})`}
+              data-tip={`${intl.formatMessage(isAppMuted ? messages.unmute : messages.mute)} (${ctrlKey}+Shift+M)`}
             >
               <i className={`mdi mdi-bell${isAppMuted ? '-off' : ''}`} />
             </button>
@@ -196,7 +178,7 @@ export default @inject('stores', 'actions') @observer class Sidebar extends Comp
               type="button"
               onClick={() => openSettings({ path: 'recipes' })}
               className="sidebar__button sidebar__button--new-service"
-              data-tip={`${intl.formatMessage(messages.addNewService)} (${addNewServiceShortcutKey(false)})`}
+              data-tip={`${intl.formatMessage(messages.addNewService)} (${ctrlKey}+N)`}
             >
               <i className="mdi mdi-plus-box" />
             </button>
@@ -214,9 +196,9 @@ export default @inject('stores', 'actions') @observer class Sidebar extends Comp
           type="button"
           onClick={() => openSettings({ path: 'app' })}
           className="sidebar__button sidebar__button--settings"
-          data-tip={`${intl.formatMessage(messages.settings)} (${settingsShortcutKey(false)})`}
+          data-tip={`${intl.formatMessage(messages.settings)} (${ctrlKey}+${settingsShortcutKey})`}
         >
-          <i className="mdi mdi-cog" />
+          <i className="mdi mdi-settings" />
           { (this.props.stores.app.updateStatus === this.props.stores.app.updateStatusTypes.AVAILABLE
             || this.props.stores.app.updateStatus === this.props.stores.app.updateStatusTypes.DOWNLOADED) && (
             <span className="update-available">
