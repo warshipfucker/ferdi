@@ -528,7 +528,7 @@ export default @observer class EditSettingsForm extends Component {
                   condition={!isSpellcheckerIncludedInCurrentPlan}
                   gaEventInfo={{ category: 'User', event: 'upgrade', label: 'spellchecker' }}
                 >
-                  <Fragment>
+                  <>
                     <Toggle
                       field={form.$('enableSpellchecking')}
                     />
@@ -538,12 +538,13 @@ export default @observer class EditSettingsForm extends Component {
                     {form.$('enableSpellchecking').value && isMac && (
                       <p>{intl.formatMessage(messages.spellCheckerLanguageInfo)}</p>
                     )}
-                  </Fragment>
+                  </>
                 </PremiumFeatureContainer>
                 <a
                   href={FRANZ_TRANSLATION}
                   target="_blank"
                   className="link"
+                  rel="noreferrer"
                 >
                   {intl.formatMessage(messages.translationHelp)}
                   {' '}
@@ -644,16 +645,14 @@ export default @observer class EditSettingsForm extends Component {
                 <span className="mdi mdi-github-face" />
                 <span>
 
-
-                Ferdi is based on
+                  Ferdi is based on
                   {' '}
-                  <a href="https://github.com/meetfranz/franz" target="_blank">Franz</a>
+                  <a href="https://github.com/meetfranz/franz" target="_blank" rel="noreferrer">Franz</a>
 
-
-                , a project published
-                under the
+                  , a project published
+                  under the
                   {' '}
-                  <a href="https://github.com/meetfranz/franz/blob/master/LICENSE" target="_blank">Apache-2.0 License</a>
+                  <a href="https://github.com/meetfranz/franz/blob/master/LICENSE" target="_blank" rel="noreferrer">Apache-2.0 License</a>
                 </span>
                 <br />
                 <span className="mdi mdi-information" />

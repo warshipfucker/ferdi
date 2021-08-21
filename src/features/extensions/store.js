@@ -20,7 +20,7 @@ export default class ExtensionsStore extends FeatureStore {
   @observable webViews = [];
 
   @action start(stores, actions) {
-    debug('TodoStore::start');
+    debug('Starting, registering actions and reactions');
     this.stores = stores;
     this.actions = actions;
 
@@ -41,7 +41,7 @@ export default class ExtensionsStore extends FeatureStore {
 
   @action stop() {
     super.stop();
-    debug('TodoStore::stop');
+    debug('Stopping and resetting');
     this.reset();
     this.isFeatureActive = false;
   }

@@ -77,7 +77,6 @@ export default @inject('stores', 'actions') @observer class RecipesScreen extend
     }
   }
 
-
   prepareRecipes(recipes) {
     return recipes
     // Filter out duplicate recipes

@@ -139,7 +139,6 @@ export default @injectSheet(styles) @observer class ExtensionStoreDashboard exte
     } = this.props;
     const { intl } = this.context;
 
-
     const communityExtensions = extensions.filter(r => !r.isDevExtension);
     const devExtensions = extensions.filter(r => r.isDevExtension);
 

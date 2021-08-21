@@ -6,10 +6,12 @@ import installChromeExtension from './webstore/install';
 import ExtensionsStore from './store';
 
 import { loadExtension, loadExtensions, loadExtensionInWebView } from './activate';
+import { userDataExtensionsPath } from '../../environment';
+import { openPath } from '../../helpers/url-helpers';
 
 const debug = require('debug')('Ferdi:feature:extensions');
 
-export const extensionsPath = path.join(remote.app.getPath('userData'), 'extensions');
+export const extensionsPath = userDataExtensionsPath();
 
 export default async function initialize(stores, actions) {
   debug('Initialize extensions feature');
@@ -47,8 +49,7 @@ export default async function initialize(stores, actions) {
   };
 
   const openExtensionFolder = (key) => {
-    const filePath = path.join(extensionsPath, key);
-    shell.showItemInFolder(filePath);
+    openPath(userDataExtensionsPath(key));
   };
 
   const deleteExtension = async (key, openSettings = true) => {

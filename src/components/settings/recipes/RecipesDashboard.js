@@ -152,7 +152,6 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
     } = this.props;
     const { intl } = this.context;
 
-
     const communityRecipes = recipes.filter(r => !r.isDevRecipe);
     const devRecipes = recipes.filter(r => r.isDevRecipe);
 
@@ -208,7 +207,7 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
             >
               {intl.formatMessage(messages.customRecipes)}
             </Link>
-            <a href={FRANZ_SERVICE_REQUEST} target="_blank" className="link recipes__service-request">
+            <a href={FRANZ_SERVICE_REQUEST} target="_blank" className="link recipes__service-request" rel="noreferrer">
               {intl.formatMessage(messages.missingService)}
               {' '}
               <i className="mdi mdi-open-in-new" />
@@ -265,7 +264,7 @@ export default @injectSheet(styles) @observer class RecipesDashboard extends Com
                       </span>
 
                       <p className="settings__empty-state-text">{intl.formatMessage(messages.nothingFound)}</p>
-                      
+
                       <RecipeItem
                         key={customWebsiteRecipe.id}
                         recipe={customWebsiteRecipe}

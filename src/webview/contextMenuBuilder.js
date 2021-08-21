@@ -53,7 +53,7 @@ module.exports = class ContextMenuBuilder {
     this.debugMode = debugMode;
     this.processMenu = processMenu;
     this.menu = null;
-    this.stringTable = Object.assign({}, contextMenuStringTable);
+    this.stringTable = { ...contextMenuStringTable };
     this.getWebContents = () => webContents;
   }
 

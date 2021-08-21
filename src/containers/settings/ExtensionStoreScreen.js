@@ -9,6 +9,8 @@ import path from 'path';
 import ExtensionsDashboard from '../../components/settings/extensions/StoreDashboard';
 import ErrorBoundary from '../../components/util/ErrorBoundary';
 import { EXTENSIONS_PATH } from '../../config';
+import { userDataExtensionsPath } from '../../environment';
+import { openPath } from '../../helpers/url-helpers';
 import ExtensionPreview from '../../models/ExtensionPreview';
 
 const { app } = remote;
@@ -79,8 +81,8 @@ export default @inject('stores', 'actions') @observer class ExtensionsStoreScree
 
         // Sort alphabetically
       }).sort((a, b) => {
-        if (a.id < b.id) { return -1; }
-        if (a.id > b.id) { return 1; }
+        if (a.name < b.name) { return -1; }
+        if (a.name > b.name) { return 1; }
         return 0;
       });
   }
@@ -110,7 +112,7 @@ export default @inject('stores', 'actions') @observer class ExtensionsStoreScree
       );
     }
 
-    const extensionDirectory = path.join(app.getPath('userData'), 'extensions');
+    const extensionDirectory = userDataExtensionsPath();
 
     return (
       <ErrorBoundary>
@@ -124,7 +126,7 @@ export default @inject('stores', 'actions') @observer class ExtensionsStoreScree
           extensionFilter={filter}
           extensionDirectory={extensionDirectory}
           openExtensionDirectory={async () => {
-            await fs.ensureDir(extensionDirectory);
+            await openPath(extensionDirectory);
             shell.openItem(extensionDirectory);
           }}
         />

@@ -29,7 +29,6 @@ export default @observer class EditExtensionForm extends Component {
     intl: intlShape,
   };
 
-
   render() {
     const {
       onDelete,
@@ -61,7 +60,7 @@ export default @observer class EditExtensionForm extends Component {
             {info.name}
           </h2>
           {info.version && (
-            <p className="extension-version">
+            <p className="extension-info-text">
               {`Version ${info.version}`}
             </p>
           )}
@@ -71,7 +70,7 @@ export default @observer class EditExtensionForm extends Component {
           )}
 
           {info.homepage_url && (
-            <a className="extension-homepage" href={info.homepage_url} target="_blank">
+            <a className="extension-homepage" href={info.homepage_url} target="_blank" rel="noreferrer">
               <i className="mdi mdi-home" />
               {' '}
               {info.homepage_url}

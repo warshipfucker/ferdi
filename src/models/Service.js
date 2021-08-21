@@ -225,7 +225,6 @@ export default class Service {
     return ua;
   }
 
-
   initializeWebViewEvents({ handleIPCMessage, openWindow, stores }) {
     const webContents = remote.webContents.fromId(this.webview.getWebContentsId());
 
@@ -273,7 +272,6 @@ export default class Service {
         options,
       });
     });
-
 
     this.webview.addEventListener('will-navigate', event => handleUserAgent(event.url, true));
 

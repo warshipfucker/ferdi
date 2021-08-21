@@ -82,22 +82,22 @@ export default @observer class ExtensionStoreScreen extends Component {
                 {extension.name}
               </h2>
               {extension.title && (
-              <p className="extension-version">
+              <p className="extension-info-text">
                 {`${extension.title}`}
               </p>
               )}
               {extension.version && (
-              <p className="extension-version">
+              <p className="extension-info-text">
                 {`Version ${extension.version}`}
               </p>
               )}
               {extension.users && (
-              <p className="extension-version">
+              <p className="extension-info-text">
                 {`${extension.users} Users`}
               </p>
               )}
               {extension.rating && (
-              <p className="extension-version">
+              <p className="extension-info-text">
                 {`${Math.round(extension.rating.average)}/5 Stars (${extension.rating.count} Votes)`}
               </p>
               )}
@@ -108,7 +108,7 @@ export default @observer class ExtensionStoreScreen extends Component {
 
               {extension.website && (
               <div style={{ height: 'auto' }}>
-                <a className="extension-homepage" href={extension.website} target="_blank">
+                <a className="extension-homepage" href={extension.website} target="_blank" rel="noreferrer">
                   <i className="mdi mdi-home" />
                   {' '}
                   {extension.website}
@@ -118,10 +118,10 @@ export default @observer class ExtensionStoreScreen extends Component {
 
               {extension.url && (
               <div style={{ height: 'auto' }}>
-                <a className="extension-homepage" href={extension.url} target="_blank">
+                <a className="extension-homepage" href={extension.url} target="_blank" rel="noreferrer">
                   <i className="mdi mdi-home" />
                   {' '}
-                      View in the Chrome Webstore
+                  View in the Chrome Webstore
                 </a>
               </div>
               )}
@@ -132,14 +132,14 @@ export default @observer class ExtensionStoreScreen extends Component {
                 <ul>
                   {manifest.permissions.map(permission => (
                     <li key={permission}>
-                          -
+                      -
                       {' '}
                       {permissionText(permission)}
                     </li>
                   ))}
                   {manifest.background && (
                   <li>
-                          - Run scripts in the background
+                    - Run scripts in the background
                   </li>
                   )}
                 </ul>
