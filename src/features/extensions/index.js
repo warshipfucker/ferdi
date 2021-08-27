@@ -28,7 +28,7 @@ export default async function initialize(stores, actions) {
     const info = getExtensionInfo(key);
     const noIcon = './assets/images/no-extension-icon.png';
 
-    if (!info.icons || info.icons.length === 0) {
+    if (!info.icon) {
       return noIcon;
     }
 
