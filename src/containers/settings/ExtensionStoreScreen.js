@@ -1,4 +1,4 @@
-import { remote, shell } from 'electron';
+import { shell } from 'electron';
 import fs from 'fs-extra';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
@@ -12,8 +12,6 @@ import { EXTENSIONS_PATH } from '../../config';
 import { userDataExtensionsPath } from '../../environment';
 import { openPath } from '../../helpers/url-helpers';
 import ExtensionPreview from '../../models/ExtensionPreview';
-
-const { app } = remote;
 
 export default @inject('stores', 'actions') @observer class ExtensionsStoreScreen extends Component {
   static propTypes = {

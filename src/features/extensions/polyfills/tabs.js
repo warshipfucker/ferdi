@@ -7,6 +7,7 @@ window.chrome.tabs = {
       pinned: false,
       incognito: false,
       url: 'https://google.com',
+      options,
     },
   ],
 

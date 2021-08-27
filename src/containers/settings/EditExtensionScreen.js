@@ -7,7 +7,7 @@ import EditExtensionForm from '../../components/settings/extensions/EditExtensio
 
 import ErrorBoundary from '../../components/util/ErrorBoundary';
 
-export default @inject('stores', 'actions') @observer class EditServiceScreen extends Component {
+export default @inject('stores', 'actions') @observer class EditExtensionScreen extends Component {
   static contextTypes = {
     intl: intlShape,
   };
@@ -48,7 +48,7 @@ export default @inject('stores', 'actions') @observer class EditServiceScreen ex
   }
 }
 
-EditServiceScreen.wrappedComponent.propTypes = {
+EditExtensionScreen.wrappedComponent.propTypes = {
   router: PropTypes.shape({
     params: PropTypes.shape({
       extension: PropTypes.string.isRequired,

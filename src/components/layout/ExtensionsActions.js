@@ -1,14 +1,16 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactTooltip from 'react-tooltip';
-import { defineMessages, intlShape } from 'react-intl';
+import { intlShape } from 'react-intl';
 import { inject, observer } from 'mobx-react';
 import Popup from './ExtensionPopup';
-
-const messages = defineMessages({});
+import ExtensionsStore from '../../features/extensions/store';
 
 export default @inject('stores', 'actions') @observer class ExtensionsActions extends Component {
   static propTypes = {
+    stores: PropTypes.shape({
+      extensions: PropTypes.instanceOf(ExtensionsStore).isRequired,
+    }).isRequired,
   };
 
   static contextTypes = {
@@ -55,6 +57,7 @@ export default @inject('stores', 'actions') @observer class ExtensionsActions ex
     return (
       <img
         src={path}
+        alt="Action icon"
         style={{
           height: 25,
           width: 25,
@@ -67,7 +70,6 @@ export default @inject('stores', 'actions') @observer class ExtensionsActions ex
   render() {
     const {
       stores,
-      actions,
     } = this.props;
 
     const {

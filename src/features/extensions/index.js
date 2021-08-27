@@ -1,4 +1,3 @@
-import { shell, remote } from 'electron';
 import path from 'path';
 import fs from 'fs-extra';
 
@@ -29,22 +28,11 @@ export default async function initialize(stores, actions) {
     const info = getExtensionInfo(key);
     const noIcon = './assets/images/no-extension-icon.png';
 
-    if (!info.icons) {
+    if (!info.icons || info.icons.length === 0) {
       return noIcon;
     }
 
-    // Find largest icon
-    let largestSize = -1;
-    for (const size in info.icons) {
-      if (size > largestSize) {
-        largestSize = size;
-      }
-    }
-
-    if (largestSize === -1) {
-      return noIcon;
-    }
-
+    const largestSize = Math.max(Object.keys(info.icons).map(size => parseInt(size, 10)));
     return path.join(extensionsPath, key, info.icons[largestSize]);
   };
 

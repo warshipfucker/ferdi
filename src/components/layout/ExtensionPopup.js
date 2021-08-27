@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ElectronWebView from 'react-electron-web-view';
-import { defineMessages, intlShape } from 'react-intl';
+import { intlShape } from 'react-intl';
 import { inject, observer } from 'mobx-react';
 import { join } from 'path';
-
-const messages = defineMessages({});
 
 export default @inject('stores', 'actions') @observer class ExtensionPopup extends Component {
   static propTypes = {

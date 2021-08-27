@@ -4,9 +4,13 @@
  * @param String id Extension ID
  */
 import webstore from 'chrome-webstore';
+import path from 'path';
+import fs from 'fs-extra';
 import unzip from 'extract-zip';
 import getPlatformInfo from './platformInfo';
 import openCRXasZip from './crxToZip';
+import { loadExtension } from '../activate';
+import { userDataExtensionsPath } from '../../../environment';
 
 const installChromeExtension = (id, activeExtensions) => new Promise(async (resolve, reject) => {
   // Check if extension is already installed
@@ -32,6 +36,8 @@ const installChromeExtension = (id, activeExtensions) => new Promise(async (reso
   url += '&acceptformat=crx2,crx3';
   url += `&x=id%3D${id}`;
   url += '%26uc';
+
+  const extensionsPath = userDataExtensionsPath();
 
   const zipPath = path.join(extensionsPath, `${id}.zip`);
   const unpackedPath = path.join(extensionsPath, id);

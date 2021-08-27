@@ -24,7 +24,7 @@ export default @observer class ExtensionStoreItem extends Component {
           <span className="recipe-teaser__dev-badge">dev</span>
         )}
         <img
-          src={extension.icons.png}
+          src={extension.icon}
           className="recipe-teaser__icon"
           alt=""
         />

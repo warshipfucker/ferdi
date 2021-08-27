@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { createActionsFromDefinitions } from '../../actions/lib/actions';
 
-export const extensionsActions = createActionsFromDefinitions({
+const extensionsActions = createActionsFromDefinitions({
   activate: {
     id: PropTypes.string.isRequired,
   },

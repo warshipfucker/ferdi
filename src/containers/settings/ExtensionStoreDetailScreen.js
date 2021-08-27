@@ -5,12 +5,16 @@ import webstore from 'chrome-webstore';
 
 import StoreDetailScreen from '../../components/settings/extensions/StoreDetailScreen';
 import ErrorBoundary from '../../components/util/ErrorBoundary';
+import ExtensionsStore from '../../features/extensions/store';
 
 export default @inject('stores', 'actions') @observer class ExtensionsStoreDetailScreen extends Component {
   static propTypes = {
     params: PropTypes.shape({
       extension: PropTypes.string,
     }),
+    stores: PropTypes.shape({
+      extensions: PropTypes.instanceOf(ExtensionsStore).isRequired,
+    }).isRequired,
   };
 
   static defaultProps = {

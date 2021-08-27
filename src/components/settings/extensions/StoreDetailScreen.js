@@ -44,7 +44,8 @@ export default @observer class ExtensionStoreScreen extends Component {
     } = this.props;
 
     // Get most high resolution image
-    const highResImage = extension.images && extension.images['128x128'];
+    const iconSize = '128x128';
+    const highResImage = extension.images && extension.images[iconSize];
 
     const manifest = extension.manifest ? JSON.parse(extension.manifest) : {};
 

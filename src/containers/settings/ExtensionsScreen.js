@@ -3,12 +3,12 @@ import PropTypes from 'prop-types';
 import { inject, observer } from 'mobx-react';
 import { RouterStore } from 'mobx-react-router';
 
-// import RecipePreviewsStore from '../../stores/RecipePreviewsStore';
 import UserStore from '../../stores/UserStore';
 import ServiceStore from '../../stores/ServicesStore';
 
 import ExtensionsDashboard from '../../components/settings/extensions/ExtensionsDashboard';
 import ErrorBoundary from '../../components/util/ErrorBoundary';
+import ExtensionsStore from '../../features/extensions/store';
 
 export default @inject('stores', 'actions') @observer class ExtensionsScreen extends Component {
   componentWillUnmount() {
@@ -41,6 +41,7 @@ ExtensionsScreen.wrappedComponent.propTypes = {
     user: PropTypes.instanceOf(UserStore).isRequired,
     services: PropTypes.instanceOf(ServiceStore).isRequired,
     router: PropTypes.instanceOf(RouterStore).isRequired,
+    extensions: PropTypes.instanceOf(ExtensionsStore).isRequired,
   }).isRequired,
   actions: PropTypes.shape({
     service: PropTypes.shape({

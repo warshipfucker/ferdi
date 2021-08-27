@@ -52,8 +52,8 @@ export default class ExtensionsStore extends FeatureStore {
     this.active.push(id);
   };
 
-  @action _addAction = ({ action }) => {
-    this.browserActions.push(action);
+  @action _addAction = ({ action: act }) => {
+    this.browserActions.push(act);
   };
 
   @action _addWebView = ({ view }) => {

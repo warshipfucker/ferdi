@@ -10,6 +10,7 @@ import Navigation from '../../components/settings/navigation/SettingsNavigation'
 import ErrorBoundary from '../../components/util/ErrorBoundary';
 import { workspaceStore } from '../../features/workspaces';
 import UIStore from '../../stores/UIStore';
+import ExtensionsStore from '../../features/extensions/store';
 
 export default @inject('stores', 'actions') @observer class SettingsContainer extends Component {
   portalRoot = document.querySelector('#portalContainer');
@@ -56,6 +57,7 @@ SettingsContainer.wrappedComponent.propTypes = {
   children: PropTypes.element.isRequired,
   stores: PropTypes.shape({
     services: PropTypes.instanceOf(ServicesStore).isRequired,
+    extensions: PropTypes.instanceOf(ExtensionsStore).isRequired,
   }).isRequired,
   actions: PropTypes.shape({
     ui: PropTypes.instanceOf(UIStore).isRequired,

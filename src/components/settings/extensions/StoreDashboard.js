@@ -11,8 +11,6 @@ import SearchInput from '../../ui/SearchInput';
 import Infobox from '../../ui/Infobox';
 import ExtensionItem from './StoreItem';
 import Appear from '../../ui/effects/Appear';
-import LimitReachedInfobox from '../../../features/serviceLimit/components/LimitReachedInfobox';
-import PremiumFeatureContainer from '../../ui/PremiumFeatureContainer';
 
 const messages = defineMessages({
   headline: {
@@ -147,7 +145,6 @@ export default @injectSheet(styles) @observer class ExtensionStoreDashboard exte
         <div className="settings__header">
           <h1>{intl.formatMessage(messages.headline)}</h1>
         </div>
-        <LimitReachedInfobox />
         <div className="settings__body extensions recipes">
           {extensionStatus.length > 0 && extensionStatus.includes('created') && (
             <Appear>
@@ -224,29 +221,25 @@ export default @injectSheet(styles) @observer class ExtensionStoreDashboard exte
               </div>
             </>
           )}
-          <PremiumFeatureContainer
-            condition={(extensionFilter === 'dev' && communityExtensions.length > 0)}
-          >
-            {extensionFilter === 'dev' && communityExtensions.length > 0 && (
-              <H3>{intl.formatMessage(messages.headlineCommunityExtensions)}</H3>
+          {extensionFilter === 'dev' && communityExtensions.length > 0 && (
+            <H3>{intl.formatMessage(messages.headlineCommunityExtensions)}</H3>
+          )}
+          <div className="recipes__list">
+            {extensions.length === 0 && extensionFilter !== 'dev' && (
+              <p className="align-middle settings__empty-state">
+                <span className="emoji">
+                  <img src="./assets/images/emoji/dontknow.png" alt="" />
+                </span>
+                {intl.formatMessage(messages.nothingFound)}
+              </p>
             )}
-            <div className="recipes__list">
-              {extensions.length === 0 && extensionFilter !== 'dev' && (
-                <p className="align-middle settings__empty-state">
-                  <span className="emoji">
-                    <img src="./assets/images/emoji/dontknow.png" alt="" />
-                  </span>
-                  {intl.formatMessage(messages.nothingFound)}
-                </p>
-              )}
-              {communityExtensions.map(extension => (
-                <ExtensionItem
-                  key={extension.id}
-                  extension={extension}
-                />
-              ))}
-            </div>
-          </PremiumFeatureContainer>
+            {communityExtensions.map(extension => (
+              <ExtensionItem
+                key={extension.id}
+                extension={extension}
+              />
+            ))}
+          </div>
           {extensionFilter === 'dev' && devExtensions.length > 0 && (
             <div className={classes.devExtensionList}>
               <H3>{intl.formatMessage(messages.headlineDevExtensions)}</H3>

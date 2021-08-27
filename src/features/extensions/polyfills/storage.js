@@ -11,14 +11,18 @@ const storageProvider = {
     const data = {};
 
     for (const key in keys) {
-      data[key] = getDataFromLocal(key);
+      if (Object.prototype.hasOwnProperty.call(keys, key)) {
+        data[key] = getDataFromLocal(key);
+      }
     }
 
     callback(data);
   },
   set: (data, callback = (() => {})) => {
     for (const name in data) {
-      localStorage[name] = data[name];
+      if (Object.prototype.hasOwnProperty.call(data, name)) {
+        localStorage[name] = data[name];
+      }
     }
     callback();
   },
