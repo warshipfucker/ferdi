@@ -2,7 +2,9 @@ import { remote } from 'electron';
 import path from 'path';
 import fs from 'fs-extra';
 import ExtensionActions from './actions';
-import { extensionsPath } from './index';
+import { userDataExtensionsPath } from '../../environment';
+
+const extensionsPath = userDataExtensionsPath();
 
 export const loadExtensionInWebView = async (extension, webview) => {
   const webContents = remote.webContents.fromId(webview.getWebContentsId());
