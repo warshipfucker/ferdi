@@ -47,24 +47,25 @@ export default class UserAgent {
     return defaultUserAgent();
   }
 
-  @computed get serviceUserAgentPref() {
+  @computed get userAgentWithChromeVersion() {
     if (typeof this.userAgentPref === 'string') {
       const trimmed = this.userAgentPref.trim();
       if (trimmed !== '') {
         return trimmed;
       }
     }
-    return null;
+    return this.defaultUserAgent;
   }
 
   @computed get userAgentWithoutChromeVersion() {
-    const withChrome = this.defaultUserAgent;
+    const withChrome = this.userAgentWithChromeVersion;
     return withChrome.replace(/Chrome\/[\d.]+/, 'Chrome');
   }
 
   @computed get userAgent() {
-    return this.serviceUserAgentPref
-      || (this.chromelessUserAgent ? this.userAgentWithoutChromeVersion : this.defaultUserAgent);
+    return this.chromelessUserAgent
+      ? this.userAgentWithoutChromeVersion
+      : this.userAgentWithChromeVersion;
   }
 
   @action setWebviewReference(webview) {
