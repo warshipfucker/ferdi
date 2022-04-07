@@ -1,3 +1,8 @@
+THIS FORK USED FOR SECURITY AUDIT IN FERDI.
+IF I WILL FOUND A VULN I WILL SEND MESSAGE TO FERDI AUTHORS
+
+
+
 <p align="center">
     <a href="https://getferdi.com">
       <img src="./build-helpers/images/icon.png" alt="" width="250"/>
